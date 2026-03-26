@@ -33,34 +33,121 @@ Tip: Say "launcher" anytime to return here.
 - **Option 2**: Proceed to Section 2 (Skill Picker)
 - **Option 3**: Acknowledge and proceed without loading skills
 
-### Section 0.1: Onboarding Flow
+### Section 0.1: First Session Guided Setup
 
 Triggered when `needsOnboarding === true` in operator state.
+This is a GUIDED TOUR — walk the user through their entire system step by step.
+After this session, everything runs on autopilot.
 
-**Step 1 — Context Discovery**
-Search for existing context before asking questions:
-- Check `~/.claude/CLAUDE.md` for existing preferences
-- Check `~/.claude/skills/_catalog.json` for installed skills
-- Check `~/.claude/skills/_projects.json` for known projects
-- Check for any `CLAUDE.md` in the current working directory
+**Phase 1 — Welcome & Context Discovery** (automatic, no user input needed)
 
-**Step 2 — Offer Paths**
 ```
-It looks like this is your first time with Skills on Demand.
+Welcome to Synapis! Let me set everything up for you.
 
-[Q] Quick Setup  -- Answer 3 questions, get started in 2 minutes
-[C] Complete     -- Full configuration (5-10 minutes)
-[S] Skip         -- I'll configure later
-
-Quick Setup asks: your name, primary language, main tech stack.
-Complete Setup adds: brands/projects, work preferences, AI tools, deploy targets.
+First, let me see what I already know about you...
 ```
 
-**Step 3 — Generate Configuration**
-Based on answers, generate:
-- `~/.claude/skills/_operator-state.json` with decisions
-- `~/.claude/CLAUDE.md` with preferences
-- Set `needsOnboarding = false`
+Silently scan:
+- `~/.claude/CLAUDE.md` → existing preferences?
+- `~/.claude/projects/*/memory/` → prior memory files?
+- Current directory → package.json, requirements.txt, Cargo.toml, etc.?
+- `git config user.name` and `git config user.email` → name?
+- `~/.claude/skills/` → any existing skills installed?
+
+If found context, present it:
+```
+I found some things about you:
+- Name: [from git config]
+- Email: [from git config]
+- Current project uses: [from package.json]
+- You have [X] existing skills installed
+
+Is this correct? (yes/no)
+If yes, I'll use this as a starting point.
+```
+
+**Phase 2 — Choose Your Path**
+
+```
+Now, how much do you want to tell me?
+
+[Q] Quick — 3 questions, working in 2 minutes
+[C] Complete — Tell me everything, I'll never ask again
+[S] Skip — I'll set up later, let me work now
+```
+
+If QUICK:
+1. "What's your name?"
+2. "What language do you work in? (Spanish/English/other)"
+3. "What's your main tech stack? (e.g., Next.js, Python, etc.)"
+
+If COMPLETE:
+```
+Tell me everything you want me to know. Who are you, what do you do,
+what projects do you work on, what tools do you use, how do you like
+to work, what mistakes have you made before that you want to avoid.
+
+Everything you tell me gets saved permanently and applies to ALL
+your future projects. You'll never have to repeat this.
+```
+
+If SKIP: Set needsOnboarding = false, proceed to launcher.
+
+**Phase 3 — System Tour** (show, don't just tell)
+
+```
+Your profile is saved. Now let me show you what you have:
+
+SKILLS (5 always active):
+  1. Skill Router — I decide what tools to load for each project
+  2. Synapis Learning — I observe your work and learn patterns
+  3. Synapis Instincts — I store what I've learned
+  4. Deep Researcher — I can research any topic in depth
+  5. Context Optimizer — I keep token usage efficient
+
+TOKEN BUDGET:
+  These 5 skills use ~2,700 tokens (out of ~200,000 available)
+  That's 1.3% of your context — the rest is all for your work
+
+COMMANDS YOU CAN USE:
+  /system-status  — See everything at a glance
+  /evolve         — Turn patterns into reusable skills
+  /skill-audit    — Check what's installed and optimize
+  /clone          — Copy a project as template for a new one
+
+Say "launcher" anytime to change your mode.
+```
+
+**Phase 4 — Skill Audit** (only if existing skills found)
+
+If the user already has skills installed:
+```
+I found [X] existing skills in your system.
+Want me to run a quick audit? I'll tell you:
+- Which ones overlap (could be merged)
+- Which ones you haven't used (could be archived)
+- How many tokens you could save
+
+This takes about 30 seconds. Want to do it now? (yes/skip)
+```
+
+If yes → run /skill-audit flow with token impact.
+
+**Phase 5 — Ready**
+
+```
+You're all set! From now on, every session starts with your
+context already loaded. Synapis learns in the background.
+
+After 3-5 sessions, try /evolve to see what I've learned.
+
+What would you like to work on?
+```
+
+Set `needsOnboarding = false` in operator state.
+
+**IMPORTANT**: After this first session, the user NEVER sees the setup again.
+Everything runs automatically from this point.
 
 ---
 
