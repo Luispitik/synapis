@@ -1,0 +1,50 @@
+{
+  "version": "3.2",
+  "system": "synapis",
+  "lastUpdated": "",
+  "globalSkills": [
+    {
+      "id": "skill-router",
+      "name": "Skill Router",
+      "description": "Orquesta skills: launcher, picker, catalogo, instalacion por proyecto",
+      "type": "global",
+      "status": "active",
+      "tokens_estimate": 800
+    },
+    {
+      "id": "synapis-learning",
+      "name": "Synapis Learning",
+      "description": "Aprendizaje continuo: observa patrones, captura instincts, confidence scoring",
+      "type": "global",
+      "status": "active",
+      "tokens_estimate": 600
+    },
+    {
+      "id": "synapis-instincts",
+      "name": "Synapis Instincts",
+      "description": "Base de conocimiento con reglas aprendidas de proyectos anteriores",
+      "type": "global",
+      "status": "active",
+      "tokens_estimate": 400
+    },
+    {
+      "id": "synapis-researcher",
+      "name": "Deep Researcher",
+      "description": "Investigacion profunda con web search, multiples fuentes y sintesis",
+      "type": "global",
+      "status": "active",
+      "tokens_estimate": 500
+    },
+    {
+      "id": "synapis-optimizer",
+      "name": "Context Optimizer",
+      "description": "Optimiza uso de contexto, detecta desperdicio, sugiere limpieza",
+      "type": "global",
+      "status": "active",
+      "tokens_estimate": 400
+    }
+  ],
+  "librarySkills": [],
+  "totalTokensGlobal": 2700,
+  "note": "Library skills se anaden automaticamente al instalar desde _library/"
+}

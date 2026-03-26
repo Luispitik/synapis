@@ -1,0 +1,48 @@
+{
+  "version": "3.2",
+  "system": "synapis",
+  "rules": [
+    {
+      "id": "env-never-commit",
+      "trigger": "git add|git commit",
+      "action": "Verificar que .env* esta en .gitignore. NUNCA commitear secrets.",
+      "severity": "critical",
+      "category": "security",
+      "tokens": 30
+    },
+    {
+      "id": "html-twin-deliverables",
+      "trigger": "Write.*\\.(docx|pdf|pptx|xlsx)",
+      "action": "Generar version HTML visual del entregable para compartir facilmente.",
+      "severity": "medium",
+      "category": "workflow",
+      "tokens": 25
+    },
+    {
+      "id": "git-commit-triage",
+      "trigger": "git commit",
+      "action": "Pipeline: git status + grep errores + verificar lint/build antes de commit.",
+      "severity": "high",
+      "category": "quality",
+      "tokens": 35
+    },
+    {
+      "id": "decision-capture",
+      "trigger": "a partir de ahora|ya no usar|cambio de|dejamos de|siempre que",
+      "action": "Registrar decision estrategica en _operator-state.json con fecha y razon.",
+      "severity": "medium",
+      "category": "memory",
+      "tokens": 30
+    },
+    {
+      "id": "pattern-observer",
+      "trigger": "EVERY_SESSION",
+      "action": "Synapsis observa silenciosamente. Si detecta patron repetido 3+ veces, registrar como instinct con confidence 0.6.",
+      "severity": "low",
+      "category": "learning",
+      "tokens": 35
+    }
+  ],
+  "totalTokens": 155,
+  "note": "Reglas se cargan via hooks en settings.json. El usuario puede anadir mas con /evolve → [R]."
+}

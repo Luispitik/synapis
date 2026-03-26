@@ -1,0 +1,72 @@
+# Synapis v3.2 — Skills on Demand for Claude Code
+
+## Session Entry (EXECUTE ON FIRST MESSAGE OF EVERY SESSION)
+
+### Paths (ABSOLUTE)
+- **Skills root**: `{{CLAUDE_HOME}}/skills/`
+- **Library (dormant)**: `{{CLAUDE_HOME}}/skills/_library/`
+- **Catalog**: `{{CLAUDE_HOME}}/skills/_catalog.json`
+- **Passive rules**: `{{CLAUDE_HOME}}/skills/_passive-rules.json`
+- **Operator state**: `{{CLAUDE_HOME}}/skills/_operator-state.json`
+- **Projects registry**: `{{CLAUDE_HOME}}/skills/_projects.json`
+- **Archived skills**: `{{CLAUDE_HOME}}/skills/_archived/`
+- **Commands (global)**: `{{CLAUDE_HOME}}/commands/`
+
+### MANDATORY first action (DO THIS BEFORE ANYTHING ELSE)
+You MUST use the Read tool to read this file BEFORE responding to the user's first message:
+→ `{{CLAUDE_HOME}}/skills/_operator-state.json`
+
+This file contains the user's context, strategic decisions, and cross-project memory.
+If the operator-state is empty or has `needsOnboarding: true`, launch the onboarding flow.
+
+### Onboarding flow (only if operator-state is empty)
+
+1. First, SEARCH for existing context:
+   - Check `{{CLAUDE_HOME}}/CLAUDE.md` for user info
+   - Check `{{CLAUDE_HOME}}/projects/*/memory/` for prior memory
+   - Check local project directories for package.json, requirements.txt, etc.
+
+2. If you found context, present it:
+   "He encontrado informacion sobre ti: [summary]. Es correcto?"
+
+3. If no context found, offer two paths:
+   ```
+   Synapis instalado. Bienvenido.
+
+   [A] Rapida — 3 preguntas y empezamos a trabajar
+   [B] Completa — Cuentame todo sobre ti y tu trabajo
+       para no tener que preguntarte nunca mas
+   ```
+
+4. Save everything to `_operator-state.json`
+
+### Then respond to the user
+- If the user described a specific task → work on it directly
+- If the user greeting is open-ended → present:
+  ```
+  [1] Skills on Demand — Launcher con proyectos y skills
+  [2] Skill Picker — Elige skills manualmente
+  [3] Freestyle — Claude vanilla, sin sistema de skills
+  ```
+- At ANY point the user says "launcher", "skills", "picker", "mis proyectos" → invoke Skill tool with skill "skill-router"
+
+## Who (filled during onboarding)
+- Name: {{USER_NAME}}
+- Role: {{USER_ROLE}}
+- Company/Brand: {{USER_COMPANY}}
+- Focus: {{USER_FOCUS}}
+
+## Tech Stack (filled during onboarding)
+- **Frontend**: {{FRONTEND_STACK}}
+- **Backend**: {{BACKEND_STACK}}
+- **Deploy**: {{DEPLOY_PLATFORM}}
+- **AI**: {{AI_STACK}}
+
+## Work Preferences (learned over time)
+- Language: {{WORK_LANGUAGE}}
+- Communication style: {{COMM_STYLE}}
+- Code language: English (default)
+
+## Conventions
+- Commit messages: conventional commits in English
+- All env vars in `.env.local`, never committed

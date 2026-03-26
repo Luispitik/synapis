@@ -1,0 +1,25 @@
+{
+  "version": "3.2",
+  "system": "synapis",
+  "needsOnboarding": true,
+  "operator": {
+    "name": "",
+    "role": "",
+    "company": "",
+    "brands": [],
+    "focus": "",
+    "language": "",
+    "communicationStyle": ""
+  },
+  "techStack": {
+    "frontend": "",
+    "backend": "",
+    "database": "",
+    "deploy": "",
+    "ai": "",
+    "retired": []
+  },
+  "strategicDecisions": [],
+  "lessons": [],
+  "contextTokenEstimate": 0
+}
