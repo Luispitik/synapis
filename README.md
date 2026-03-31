@@ -174,7 +174,12 @@ Open Claude Code
   (your identity + decisions)
        |
        v
-  Launcher appears:
+  Check for EOD summary
+  (auto-resume if exists)
+       |
+       v
+  Launcher appears
+  (skipped if resuming):
   [1] Skills on Demand
   [2] Skill Picker (manual)
   [3] Freestyle (vanilla)
@@ -186,6 +191,10 @@ Open Claude Code
        v
   You work normally
   Hooks observe silently (deterministic)
+       |
+       v
+  Run /eod before closing
+  (saves context for tomorrow)
 ```
 
 ### The Learning Pipeline (v4.1)
@@ -271,6 +280,19 @@ See `core/settings.template.json` for the exact configuration.
 | `/instinct-status` | All learned patterns with levels |
 | `/promote` | Move instinct from project scope to global |
 | `/projects` | List all known projects with stats |
+| `/eod` | Save work context for tomorrow's session |
+
+### Session Continuity (`/eod`)
+
+Never lose context between sessions. Run `/eod` before closing Claude:
+
+1. Synapis captures your git activity, open PRs, and learning progress
+2. You add priorities and notes for tomorrow
+3. Next morning, Claude greets you with a summary and asks where to start
+
+No more "what was I doing yesterday?" — Synapis remembers for you.
+
+Use `/eod --quick` for a fast auto-generated summary, or `/eod --yesterday` to review your last saved session.
 
 ---
 
@@ -284,6 +306,7 @@ See `core/settings.template.json` for the exact configuration.
     sinapsis-learning/         <-- Learning engine (always active)
     _library/                  <-- Dormant skills (installed on demand)
     _archived/                 <-- Retired skills (recoverable)
+    _daily-summaries/          <-- EOD session summaries (auto-resume)
     _catalog.json              <-- Skill registry with token estimates
     _passive-rules.json        <-- Automatic guardrails
     _passive-activator.sh      <-- Hook: fires matching passive rules

@@ -51,6 +51,13 @@ Run with `/system-status` or "system status".
   Most fired:   "conventional-commits" (47 times)
   Never fired:  "legacy-migration-warn" (consider removing)
 
+  SESSION CONTINUITY                            [STATUS]
+  ───────────────────
+  Last EOD:       {date of most recent file in _daily-summaries/}
+  Summaries:      {count of .md files in _daily-summaries/}
+  Status:         GREEN if EOD today/yesterday, YELLOW if >2 days or none, RED if >7 days
+  Tip: Run /eod before ending your session
+
   OPERATOR STATE                                [GREEN]
   ──────────────
   Last updated: 2 days ago
@@ -104,6 +111,7 @@ Run with `/system-status` or "system status".
 - **Observations**: YELLOW if > 300 total, RED if > 500
 - **Passive Rules**: YELLOW if any never fired in 30+ days
 - **Operator State**: RED if unreadable, YELLOW if > 7 days stale
+- **Session Continuity**: GREEN if EOD saved today or yesterday, YELLOW if > 2 days or no summaries, RED if > 7 days
 - **Sync**: RED if push failed, YELLOW if > 7 days since sync
 
 ---
