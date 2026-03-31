@@ -15,6 +15,24 @@ Before ANY interaction, read `~/.claude/skills/_operator-state.json`.
 - If operator state has `retired` tech entries --> note them for warnings
 - If operator state has `crossProjectMemory.lessons` --> apply silently
 
+### Check for Yesterday's Summary (Session Continuity)
+
+After reading operator state, check for a daily summary to resume context.
+Use the `Read` tool (NOT Glob) with the actual date in YYYY-MM-DD format:
+
+1. Read `~/.claude/skills/_daily-summaries/<TODAY>.md` (e.g., `2026-03-31.md`) — if it exists, use it
+2. If not found, Read `~/.claude/skills/_daily-summaries/<YESTERDAY>.md` (e.g., `2026-03-30.md`)
+3. If a summary is found, extract the **"Quick Resume"** and **"For tomorrow"** sections
+
+**If a Quick Resume exists:**
+- Present it PROACTIVELY in your FIRST response, before anything else
+- Format: Greet → Summarize yesterday (paraphrase the Quick Resume) → List priorities from "For tomorrow" → Ask "Where do you want to start?"
+- Do NOT show the Launcher Menu — go straight to work context
+- The user can say "launcher" anytime to return to the menu
+
+**If NO Quick Resume exists:**
+- Proceed to the Launcher Menu as normal
+
 ### Launcher Menu
 
 When the user starts a session without a specific task, present:

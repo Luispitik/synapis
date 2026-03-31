@@ -90,6 +90,7 @@ mkdir -p "$ARCHIVED_DIR"
 mkdir -p "$COMMANDS_DIR"
 mkdir -p "$CLAUDE_HOME/projects"
 mkdir -p "$HOMUNCULUS_DIR"
+mkdir -p "$SKILLS_DIR/_daily-summaries"
 
 echo -e "${GREEN}  OK${NC} Directories created"
 
@@ -219,6 +220,7 @@ echo -e "  /system-status    — System dashboard"
 echo -e "  /evolve           — Evolve patterns into skills"
 echo -e "  /analyze-session  — Review learned proposals"
 echo -e "  /passive-status   — Active passive rules"
+echo -e "  /eod              — Save context for tomorrow"
 echo ""
 if $UPGRADING; then
     echo -e "${CYAN}  Upgrade note: your operator state and CLAUDE.md were preserved.${NC}"

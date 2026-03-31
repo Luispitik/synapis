@@ -19,6 +19,12 @@ You MUST use the Read tool to read this file BEFORE responding to the user's fir
 This file contains the user's context, strategic decisions, and cross-project memory.
 If the operator-state is empty or has `needsOnboarding: true`, launch the onboarding flow.
 
+### Session Continuity (after reading operator state)
+Use the `Read` tool (NOT Glob) to check for daily summaries:
+1. First try today's date: `{{CLAUDE_HOME}}/skills/_daily-summaries/<TODAY>.md` (e.g., `2026-03-31.md`)
+2. If not found, try yesterday's date: `{{CLAUDE_HOME}}/skills/_daily-summaries/<YESTERDAY>.md` (e.g., `2026-03-30.md`)
+3. If a summary exists → greet with Quick Resume + "For tomorrow" priorities, skip the Launcher Menu.
+
 ### Onboarding flow (only if operator-state is empty)
 
 1. First, SEARCH for existing context:
