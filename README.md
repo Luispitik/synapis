@@ -72,8 +72,10 @@ See [CHANGELOG.md](CHANGELOG.md) for full details.
 
 ### Requirements
 - [Claude Code](https://claude.ai/code) installed
-- [Node.js](https://nodejs.org) v18+ (required for the hooks — the installer will check)
+- [Node.js](https://nodejs.org) v18+ (required — injection hooks use it)
+- [Python 3](https://python.org) (recommended — required for the observation pipeline that feeds the learning system; without it, passive rules and instinct injection still work, but Claude won't learn from your sessions)
 - Git
+- Git Bash (Windows only — needed to run `.sh` hook scripts)
 
 ### Fresh Installation
 
