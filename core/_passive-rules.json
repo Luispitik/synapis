@@ -1,48 +1,57 @@
 {
-  "version": "3.2",
-  "system": "synapis",
+  "version": "4.1",
+  "system": "sinapsis",
+  "description": "Passive rules fire automatically via _passive-activator.sh (PreToolUse hook). Add rules with /evolve → [R]. Each rule has a trigger (regex on tool+input) and an inject message.",
   "rules": [
     {
       "id": "env-never-commit",
       "trigger": "git add|git commit",
-      "action": "Verificar que .env* esta en .gitignore. NUNCA commitear secrets.",
+      "inject": "Verify .env* is in .gitignore. NEVER commit secrets or API keys.",
       "severity": "critical",
       "category": "security",
-      "tokens": 30
+      "tokens": 20
     },
     {
       "id": "html-twin-deliverables",
       "trigger": "Write.*\\.(docx|pdf|pptx|xlsx)",
-      "action": "Generar version HTML visual del entregable para compartir facilmente.",
+      "inject": "Generate an HTML version of this deliverable for easy sharing and preview.",
       "severity": "medium",
       "category": "workflow",
+      "tokens": 20
+    },
+    {
+      "id": "git-commit-quality",
+      "trigger": "git commit",
+      "inject": "Before committing: verify lint/build passes, check for debug logs, use conventional commit format.",
+      "severity": "high",
+      "category": "quality",
       "tokens": 25
     },
     {
-      "id": "git-commit-triage",
-      "trigger": "git commit",
-      "action": "Pipeline: git status + grep errores + verificar lint/build antes de commit.",
-      "severity": "high",
-      "category": "quality",
-      "tokens": 35
-    },
-    {
       "id": "decision-capture",
-      "trigger": "a partir de ahora|ya no usar|cambio de|dejamos de|siempre que",
-      "action": "Registrar decision estrategica en _operator-state.json con fecha y razon.",
+      "trigger": "from now on|no longer use|switching to|always use|never use",
+      "inject": "Capture this as a strategic decision in _operator-state.json with date and reason.",
       "severity": "medium",
       "category": "memory",
-      "tokens": 30
+      "tokens": 20
     },
     {
-      "id": "pattern-observer",
-      "trigger": "EVERY_SESSION",
-      "action": "Synapsis observa silenciosamente. Si detecta patron repetido 3+ veces, registrar como instinct con confidence 0.6.",
-      "severity": "low",
-      "category": "learning",
-      "tokens": 35
+      "id": "security-headers-check",
+      "trigger": "vercel\\.json|next\\.config",
+      "inject": "Verify security headers are configured: X-Frame-Options, X-Content-Type-Options, Referrer-Policy.",
+      "severity": "high",
+      "category": "security",
+      "tokens": 25
+    },
+    {
+      "id": "api-auth-reminder",
+      "trigger": "route\\.ts|route\\.js|api/",
+      "inject": "API routes must validate authentication. Never return data without verifying the caller's identity.",
+      "severity": "high",
+      "category": "security",
+      "tokens": 25
     }
   ],
-  "totalTokens": 155,
-  "note": "Reglas se cargan via hooks en settings.json. El usuario puede anadir mas con /evolve → [R]."
+  "totalTokens": 135,
+  "note": "Rules load via _passive-activator.sh hook in settings.json. Only matching rules are injected (~20-80 tokens per tool use). Add more rules with /evolve → [R]."
 }

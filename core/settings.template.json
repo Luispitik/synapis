@@ -1,0 +1,68 @@
+{
+  "_comment": "Sinapsis v4.1 — settings.json template. Copy to ~/.claude/settings.json (merge with existing).",
+  "_hooks_total": 7,
+  "_hooks_breakdown": "PreToolUse(4) + PostToolUse(1) + Stop(2)",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "_comment": "observe pre: logs tool name + input to observations.jsonl (async, non-blocking)",
+            "type": "command",
+            "command": "bash ~/.claude/skills/sinapsis/hooks/observe.sh pre",
+            "async": true,
+            "timeout": 10
+          },
+          {
+            "_comment": "project-context: injects last-session context.md ONCE per session (sync, fast)",
+            "type": "command",
+            "command": "bash ~/.claude/skills/_project-context.sh",
+            "async": false,
+            "timeout": 3
+          },
+          {
+            "_comment": "passive-activator: fires matching passive rules as systemMessage (sync)",
+            "type": "command",
+            "command": "bash ~/.claude/skills/_passive-activator.sh",
+            "async": false,
+            "timeout": 5
+          },
+          {
+            "_comment": "instinct-activator: fires matching instincts as systemMessage (sync)",
+            "type": "command",
+            "command": "bash ~/.claude/skills/_instinct-activator.sh",
+            "async": false,
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "_comment": "observe post: logs tool output + is_error flag (async, non-blocking)",
+            "type": "command",
+            "command": "bash ~/.claude/skills/sinapsis/hooks/observe.sh post",
+            "async": true,
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "_comment": "session-learner: writes context.md + detects error patterns → _instinct-proposals.json",
+            "type": "command",
+            "command": "bash ~/.claude/skills/_session-learner.sh",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}

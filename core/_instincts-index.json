@@ -1,0 +1,39 @@
+{
+  "version": "4.1",
+  "description": "Instinct registry. Loaded by _instinct-activator.sh on every tool use. Add your own instincts or use /evolve to promote patterns.",
+  "levels": {
+    "draft": "Proposed by session-learner. Not injected. Review with /analyze-session.",
+    "confirmed": "User validated. Injected silently when trigger_pattern matches.",
+    "permanent": "Explicitly promoted via /promote. Highest priority in domain dedup."
+  },
+  "domainDedup": "One instinct per domain is injected per tool use. permanent > confirmed. Max 3 domains.",
+  "instincts": [
+    {
+      "id": "env-vars-never-hardcode",
+      "domain": "security",
+      "level": "confirmed",
+      "trigger_pattern": "api.?key|secret|password|token|credential|\.env",
+      "inject": "Never hardcode secrets. Use environment variables. Add to .env.local, never commit.",
+      "origin": "manual",
+      "added": "2026-01-01"
+    },
+    {
+      "id": "git-commit-conventional",
+      "domain": "git",
+      "level": "confirmed",
+      "trigger_pattern": "git commit|commit message",
+      "inject": "Use conventional commits: feat/fix/chore/docs/refactor/test. Keep subject under 72 chars.",
+      "origin": "manual",
+      "added": "2026-01-01"
+    },
+    {
+      "id": "error-handling-explicit",
+      "domain": "code-quality",
+      "level": "confirmed",
+      "trigger_pattern": "try|catch|error|exception|throw",
+      "inject": "Handle errors explicitly. No silent catches. Log errors with context (what failed, why).",
+      "origin": "manual",
+      "added": "2026-01-01"
+    }
+  ]
+}

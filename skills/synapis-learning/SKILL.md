@@ -1,212 +1,145 @@
-# Synapis Learning v1.0
+# Sinapsis Learning v4.1
 
-> Continuous learning engine. Observes sessions passively, detects patterns,
-> captures instincts, and feeds the evolution pipeline.
-> This skill is ALWAYS ACTIVE -- it runs in the background of every session.
-
----
-
-## Core Concept
-
-Synapis Learning watches how the user works with Claude and captures **instincts**:
-atomic, reusable patterns that encode "when X happens, do Y" knowledge.
-
-Over time, instincts mature through confidence scoring and can be evolved into
-full skills, commands, agents, or passive rules via `/evolve`.
+> Continuous learning engine for Claude Code. Observes sessions via deterministic hooks,
+> detects error patterns at session end, and injects learned instincts into future sessions.
+> This skill is ALWAYS ACTIVE — it loads at session start.
 
 ---
 
-## Operating Modes
+## How It Actually Works
 
-### 1. Passive Observation (Always On)
-
-Every session, Synapis silently observes:
-
-- **Corrections**: User corrects Claude's output --> potential instinct
-- **Repetitions**: Same pattern appears 3+ times --> strong instinct candidate
-- **Preferences**: User consistently chooses A over B --> preference instinct
-- **Workarounds**: User applies a non-obvious fix --> gotcha instinct
-- **Tool chains**: User always runs tools in sequence X->Y->Z --> workflow instinct
-- **Rejections**: User rejects Claude's suggestion --> anti-pattern instinct
-
-**Rule**: Never interrupt the user to report observations. Log silently.
-
-### 2. Active Capture (On Request)
-
-Triggered when user says:
-- "Learn this", "Remember this pattern", "Save this as instinct"
-- "This is how I always do X"
-- "Never do Y again"
-
-Active capture creates an instinct immediately with confidence 0.8 (user-validated).
-
-### 3. Analysis Mode
-
-Triggered by `/analyze-observations` or "what have you learned?".
-
-Reviews the observation log and:
-- Clusters related observations
-- Proposes new instincts
-- Identifies instincts ready for evolution
-- Suggests passive rules
-
----
-
-## Pattern Detection
-
-### Detection Rules
-
-| Signal | Confidence Boost | Example |
-|--------|-----------------|---------|
-| User explicitly says "always/never" | +0.3 | "Always use TypeScript" |
-| Pattern seen 2x | +0.1 | Same fix applied twice |
-| Pattern seen 3x | +0.2 | Third time same pattern |
-| Pattern seen 5x+ | +0.3 | Consistent behavior |
-| User corrects Claude | +0.2 | "No, do it like this" |
-| Pattern matches existing instinct | +0.1 | Reinforcement |
-| Pattern contradicts existing instinct | flag for review | Conflict detected |
-
-### Confidence Scoring
-
-Every instinct has a confidence score from 0.0 to 1.0:
+Sinapsis Learning is built on 4 deterministic bash hooks (no LLM in the pipeline):
 
 ```
-0.0 - 0.3  : Observation (raw, unvalidated)
-0.3 - 0.5  : Hypothesis (seen multiple times, not yet confirmed)
-0.5 - 0.7  : Pattern (consistent, likely correct)
-0.7 - 0.9  : Instinct (validated, reliable)
-0.9 - 1.0  : Law (proven across multiple projects/sessions)
+PreToolUse  → observe.sh pre   (async) — logs tool + input to observations.jsonl
+PostToolUse → observe.sh post  (async) — logs tool output + is_error flag
+PreToolUse  → _project-context.sh (sync, once/session) — injects last context.md
+PreToolUse  → _instinct-activator.sh (sync) — injects matched instincts
+Stop        → _session-learner.sh — writes context.md + detects error patterns
 ```
 
-Confidence increases through:
-- Repeated observation (+0.1 per occurrence, max +0.3)
-- User validation (+0.2)
-- Cross-project confirmation (+0.2)
-- Time stability (instinct holds true over 5+ sessions: +0.1)
-
-Confidence decreases through:
-- Contradiction by user (-0.2)
-- Failed application (-0.1)
-- Staleness (no observation in 30+ days: -0.05)
+**What fires automatically:** passive rules, instinct injection, observation logging, context.md writing.
+**What requires your input:** reviewing proposals (`/analyze-session`), accepting new instincts, running `/evolve`.
 
 ---
 
-## Instinct Capture Format
+## The Learning Pipeline
 
-When a pattern is detected, capture it as:
+```
+You work on a project
+        |
+        v
+observe.sh logs every tool use → observations.jsonl
+        |
+        v
+Session ends (Stop hook)
+        |
+    _session-learner.sh runs:
+        ├── Writes context.md (project name, date, files touched, gotcha count)
+        └── Detects error→fix patterns → _instinct-proposals.json (draft)
+        |
+        v
+Next session starts
+        |
+    _project-context.sh injects context.md (once)
+        |
+        v
+You run /analyze-session
+        |
+    Review proposals → accept/reject
+        |
+        v
+Accepted instincts → _instincts-index.json (confirmed)
+        |
+        v
+Future sessions:
+    _instinct-activator.sh matches instincts → injects as systemMessage
+```
+
+---
+
+## Instinct Levels
+
+| Level | Behavior | How to reach |
+|-------|----------|--------------|
+| `draft` | Proposed, never injected. Visible in `/analyze-session` only. | session-learner detection |
+| `confirmed` | Injected silently when trigger matches. | User accepts in `/analyze-session` |
+| `permanent` | Highest priority in domain dedup. | User runs `/promote` |
+
+**Domain dedup**: one instinct per domain fires per tool use. `permanent` beats `confirmed`. Max 3 domains total.
+
+---
+
+## Instinct Format
 
 ```json
 {
-  "id": "inst_a1b2c3",
-  "trigger": "When deploying a Next.js app to Vercel",
-  "action": "Always check for middleware compatibility",
-  "confidence": 0.6,
-  "domain": "deployment",
-  "tags": ["nextjs", "vercel", "middleware"],
-  "scope": "project",
-  "source": "observation",
-  "firstSeen": "2025-01-15",
-  "lastSeen": "2025-02-20",
-  "occurrences": 4,
-  "project": "my-webapp"
+  "id": "unique-id",
+  "domain": "security|git|code-quality|deployment|testing|workflow|...",
+  "level": "confirmed",
+  "trigger_pattern": "regex matched against tool_name + tool_input",
+  "inject": "The message injected as systemMessage when trigger matches.",
+  "origin": "manual | learned",
+  "added": "2026-01-15"
 }
 ```
-
-### Domain Tags
-
-Instincts are tagged with domains for organization:
-
-- `development` -- coding patterns, architecture decisions
-- `deployment` -- CI/CD, hosting, infrastructure
-- `testing` -- test strategies, assertion patterns
-- `documentation` -- doc style, structure preferences
-- `workflow` -- process patterns, tool chains
-- `communication` -- writing style, response format
-- `debugging` -- troubleshooting approaches
-- `design` -- UI/UX patterns, component choices
-- `data` -- data handling, transformations
-- `security` -- auth patterns, vulnerability awareness
-- `performance` -- optimization techniques
-- `custom:{tag}` -- user-defined domains
 
 ---
 
-## Observation Logging
+## What Gets Observed
 
-Observations are stored in `~/.claude/skills/_observations.json`:
+Every tool use is logged to `~/.claude/homunculus/projects/{hash}/observations.jsonl`:
 
-```json
-{
-  "observations": [
-    {
-      "id": "obs_x1y2z3",
-      "timestamp": "2025-02-20T14:30:00Z",
-      "session": "session-id",
-      "project": "project-name",
-      "type": "correction|repetition|preference|workaround|rejection",
-      "description": "User corrected API error handling to use custom error class",
-      "context": "While building REST endpoint",
-      "relatedInstinct": "inst_a1b2c3",
-      "promoted": false
-    }
-  ]
-}
-```
+- Tool name and key input fields (file_path, command, pattern)
+- Output excerpt (scrubbed of secrets)
+- `is_error: true` flag when output contains error keywords (error, failed, exception, traceback)
+- Timestamp and session ID
 
-### Log Rotation
+Observations stay **local** — no external transmission, no cloud sync.
 
-- Keep last 500 observations in active log
-- Archive older observations to `_observations_archive.json`
-- Aggregate archived observations into instinct confidence scores
+---
+
+## Active Capture (On Request)
+
+You can also create instincts manually:
+- "Learn this pattern" — Claude creates an instinct immediately (level: confirmed)
+- "Never do X again" — anti-pattern instinct
+- "Always use Y for Z" — preference instinct
+
+Use `/instinct-status` to see all instincts and their levels.
 
 ---
 
 ## Integration with /evolve
 
-When instincts reach confidence >= 0.7, they become candidates for evolution.
+When instincts cluster around a theme, `/evolve` lets you promote them:
 
-The `/evolve` command reads mature instincts and proposes:
-- **[S]kill**: Create a new reusable skill from clustered instincts
+- **[S]kill**: Create a reusable skill from a cluster of instincts
 - **[C]ommand**: Create a slash command for a repeated workflow
 - **[A]gent**: Create an autonomous agent for complex patterns
-- **[R]ule**: Create a passive rule that fires automatically
-- **[E]nrich**: Add to an existing skill's knowledge
+- **[R]ule**: Convert to a passive rule (fires on trigger, no instinct index needed)
+- **[E]nrich**: Add knowledge to an existing skill
 - **[P]romote**: Move from project scope to global scope
-
-See `/evolve` command for full details.
+- **[X]**: Skip — not ready yet
 
 ---
 
-## Privacy & Data
+## Privacy
 
-- All observations stay local (no external transmission)
-- No personal data is captured in instincts -- only patterns
-- Instinct `trigger` and `action` fields describe behavior, not content
-- Users can delete any instinct or observation at any time
+- All data is local (`~/.claude/homunculus/`)
+- No personal data captured in instincts — only patterns
+- Delete any instinct: remove from `_instincts-index.json`
+- Delete observations: remove the project's `observations.jsonl`
 - `/instinct-status` shows everything that has been learned
 
 ---
 
 ## Commands
 
-| Command | Action |
-|---------|--------|
-| "Learn this" | Capture current pattern as instinct |
-| "What have you learned?" | Show learning summary |
-| `/instinct-status` | Show all instincts with confidence |
-| `/analyze-observations` | Deep analysis of observation log |
-| `/evolve` | Promote mature instincts to skills/commands |
-| `/promote` | Move instinct from project to global scope |
-
----
-
-## Self-Healing Integration
-
-When Synapis detects a repeated error pattern:
-
-1. Log as observation with type `workaround`
-2. If the same error+fix appears 3x, create instinct automatically
-3. If instinct confidence reaches 0.8, suggest as passive rule
-4. Passive rule auto-applies the fix without asking
-
-This creates a **self-healing loop**: errors become knowledge become automatic fixes.
+| Command | What it does |
+|---------|-------------|
+| `/analyze-session` | Review proposals from session-learner, accept/reject |
+| `/instinct-status` | All instincts with levels and domains |
+| `/evolve` | Promote mature instincts to skills/commands/rules |
+| `/promote` | Move instinct from project scope to global |
+| `/passive-status` | Which passive rules fire most, which never triggered |

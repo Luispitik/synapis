@@ -1,18 +1,18 @@
-# Synapis v3.2
+# Sinapsis v4.1
 
 ### The skill system for Claude Code that learns and adapts to you.
 
-> Stop explaining the same thing twice. Synapis remembers, learns, and gets better with every session.
+> Stop explaining the same thing twice. Sinapsis remembers, learns, and gets better with every session.
 
 ---
 
-## What is Synapis?
+## What is Sinapsis?
 
-Synapis is an intelligent skill management system for [Claude Code](https://claude.ai/code). It solves a fundamental problem: **Claude Code forgets everything between sessions.**
+Sinapsis is an intelligent skill management system for [Claude Code](https://claude.ai/code). It solves a fundamental problem: **Claude Code forgets everything between sessions.**
 
 Every time you start a new session, Claude starts from zero. Your preferences, your tech stack, your workflows, your past decisions — all gone. You end up repeating yourself. Again. And again.
 
-**Synapis fixes this.** It gives Claude Code:
+**Sinapsis fixes this.** It gives Claude Code:
 
 - **Memory that persists** across sessions and projects
 - **Skills that load on demand** instead of all at once
@@ -23,7 +23,22 @@ Think of it as going from a dumb terminal to an assistant that actually knows yo
 
 ---
 
-## The Problem (Before Synapis)
+## What's New in v4.1
+
+| Feature | Description |
+|---------|-------------|
+| **Closed learning pipeline** | observe → session-learner → proposals → /analyze-session → inject. All connected. |
+| **Project context bridge** | `context.md` written at session end, injected at next session start. Never lose thread. |
+| **Domain deduplication** | One instinct per domain per tool use. No contradictions. Max 3. |
+| **3-level confidence** | `draft` / `confirmed` / `permanent`. No more decimal scoring noise. |
+| **Honest observation model** | Hooks are deterministic scripts. No fake "real-time passive analysis." |
+| **Token efficiency** | 2 global skills always active (was 5). Injected content is only what matches (~50–200 tokens). |
+
+See [CHANGELOG.md](CHANGELOG.md) for full details.
+
+---
+
+## The Problem (Before Sinapsis)
 
 | Issue | Impact |
 |-------|--------|
@@ -37,16 +52,17 @@ Think of it as going from a dumb terminal to an assistant that actually knows yo
 
 ---
 
-## The Solution (With Synapis)
+## The Solution (With Sinapsis)
 
 | Feature | How it works |
 |---------|-------------|
-| **Skills on Demand** | Only loads the skills your current project needs (~2,500 tokens vs ~25,000) |
+| **Skills on Demand** | Only loads the skills your current project needs (~2,800 tokens vs ~25,000) |
 | **Operator State** | Your identity, stack, and decisions persist across ALL projects |
-| **Synapsis Engine** | Observes your work silently, detects patterns, creates reusable skills |
+| **Sinapsis Engine** | 4 deterministic hooks: observe, inject, learn, bridge |
 | **Skill Router** | Matches your intent to the right skills from a dormant catalog |
 | **Passive Rules** | Technical guardrails that fire automatically (security, quality, workflow) |
-| **Project Cloning** | Clone a successful project as the base for a new one — skills, structure, and all |
+| **Instinct Injection** | Learned patterns injected silently when context matches |
+| **Project Cloning** | Clone a successful project as the base for a new one |
 
 **Result: 90% less token waste. Zero repetition. Claude that actually improves.**
 
@@ -57,63 +73,26 @@ Think of it as going from a dumb terminal to an assistant that actually knows yo
 ### Requirements
 - [Claude Code](https://claude.ai/code) installed
 - Git
+- Node.js (for the hooks)
 
 ### Installation
 
-**Step 1: Install the files**
-
-macOS / Linux:
+**macOS / Linux:**
 ```bash
-git clone https://github.com/Luispitik/synapis.git
-cd synapis
+git clone https://github.com/Luispitik/sinapsis-3.2.git
+cd sinapsis-3.2
 chmod +x install.sh
 ./install.sh
 ```
 
-Windows:
+**Windows:**
 ```cmd
-git clone https://github.com/Luispitik/synapis.git
-cd synapis
+git clone https://github.com/Luispitik/sinapsis-3.2.git
+cd sinapsis-3.2
 install.bat
 ```
 
-**Step 2: Create your Synapis home folder**
-
-Create a new empty folder anywhere on your computer. This will be your **Synapis control center** — the place where you configure and manage everything.
-
-```bash
-mkdir ~/synapis-home
-cd ~/synapis-home
-claude
-```
-
-**Step 3: Let Synapis guide you**
-
-When you open Claude Code in that folder for the first time, Synapis detects it's a fresh install and walks you through everything:
-
-1. Sets up your profile (who you are, what you do)
-2. Configures your memory (so it remembers you across projects)
-3. Activates automatic protections (security, quality checks)
-4. Shows you what you have and how to use it
-
-**After this first session, Synapis propagates to ALL your projects automatically.** You don't need to install anything else — just open Claude Code in any folder and your system is there.
-
-The `synapis-home` folder becomes your go-to place for system management: running `/system-status`, `/evolve`, or updating your global configuration.
-
----
-
-## What Happens After Install
-
-1. **You open Claude Code** in any project folder
-2. **Synapis detects it's your first time** and launches onboarding
-3. **It searches for existing context** (prior CLAUDE.md, memory files, git history)
-4. **If it finds something**, it shows you: "I found this about you. Correct?"
-5. **If not**, it offers two paths:
-   - **Quick** — 3 questions, start working in 30 seconds
-   - **Complete** — Tell me everything, never repeat yourself again
-6. **Your context is saved** in the Operator State — applies to ALL future projects
-
-From that point on, every session starts with Claude already knowing who you are, what you use, and how you work.
+After install, open Claude Code in any project folder. Sinapsis guides you through first-time setup.
 
 ---
 
@@ -125,8 +104,7 @@ From that point on, every session starts with Claude already knowing who you are
 Open Claude Code
        |
        v
-  CLAUDE.md loads
-  (entry point)
+  CLAUDE.md loads (entry point)
        |
        v
   Read Operator State
@@ -139,43 +117,48 @@ Open Claude Code
   [3] Freestyle (vanilla)
        |
        v
-  Skill Router matches
-  your project to skills
-       |
-       v
-  Install ONLY what
-  you need (2,500 tokens
-  instead of 25,000)
+  Install ONLY what you need
+  (~2,800 tokens instead of ~25,000)
        |
        v
   You work normally
-  Synapsis observes silently
+  Hooks observe silently (deterministic)
 ```
 
-### The Learning Loop
+### The Learning Pipeline (v4.1)
 
 ```
   You work on your project
          |
          v
-  Synapsis detects patterns
-  ("You've done this 3 times...")
+  observe.sh logs every tool use
+  → observations.jsonl (local only)
          |
          v
-  Creates an Instinct
-  (atomic rule + confidence 0-100%)
+  Session ends (Stop hook)
+         |
+    session-learner runs:
+    ├── Writes context.md per project
+    └── Detects error→fix patterns
+        → _instinct-proposals.json
          |
          v
-  When confidence >= 80%
-  /evolve suggests promotion
+  Next session:
+  context.md injected (once, first tool use)
          |
          v
-  You choose: create Skill,
-  Command, Agent, Rule, or Skip
+  You run /analyze-session
+  → Review proposals → Accept
+  → _instincts-index.json (confirmed)
          |
          v
-  New skill added to catalog
-  Available for ALL projects
+  Future sessions:
+  _instinct-activator.sh matches
+  instincts → injects as context
+         |
+         v
+  Pattern matures? Run /evolve
+  → Create Skill, Command, Rule...
          |
          v
   Cycle repeats.
@@ -184,18 +167,46 @@ Open Claude Code
 
 ---
 
+## The Hook Architecture (v4.1)
+
+Sinapsis uses 7 deterministic hooks configured in `settings.json`:
+
+| Hook | Event | Type | Purpose |
+|------|-------|------|---------|
+| `observe.sh pre` | PreToolUse | async | Log tool name + input |
+| `_project-context.sh` | PreToolUse | sync (3s) | Inject last session context (once/session) |
+| `_passive-activator.sh` | PreToolUse | sync (5s) | Fire matching passive rules |
+| `_instinct-activator.sh` | PreToolUse | sync (5s) | Inject matched instincts |
+| `observe.sh post` | PostToolUse | async | Log tool output + is_error flag |
+| `_session-learner.sh` | Stop | sync (15s) | Write context.md + detect error patterns |
+
+See `core/settings.template.json` for the exact configuration.
+
+---
+
+## Token Budget
+
+| Component | Tokens | When |
+|-----------|--------|------|
+| 2 global skills (router + learning) | ~2,800 | Every session |
+| Passive rules (matched only) | ~20–80 | Per matching tool use |
+| Instincts (matched only) | ~50–200 | Per matching tool use |
+| Project context bridge | ~50–150 | Once per session |
+| **Total session start** | **~2,800–3,200** | vs ~25,000 before |
+
+---
+
 ## Commands
 
 | Command | What it does |
 |---------|-------------|
 | `/system-status` | Full dashboard: skills, tokens, projects, health |
-| `/evolve` | Analyze mature patterns, create skills/rules/commands |
+| `/evolve` | Analyze mature instincts, create skills/rules/commands |
+| `/analyze-session` | Review proposals from session-learner, accept/reject |
 | `/clone` | Clone a project as base for a new one |
-| `/skill-audit` | Deep scan of installed skills with cleanup proposals |
 | `/passive-status` | Which passive rules fire, which never triggered |
-| `/instinct-status` | All learned patterns with confidence scores |
-| `/analyze-observations` | Process observation logs, suggest new skills |
-| `/promote` | Promote project-specific patterns to global |
+| `/instinct-status` | All learned patterns with levels |
+| `/promote` | Move instinct from project scope to global |
 | `/projects` | List all known projects with stats |
 
 ---
@@ -204,76 +215,64 @@ Open Claude Code
 
 ```
 ~/.claude/
-  CLAUDE.md                  <-- Entry point (loaded every session)
+  CLAUDE.md                    <-- Entry point (loaded every session)
   skills/
-    skill-router/            <-- Orchestrator (always active)
-    synapis-learning/        <-- Learning engine (always active)
-    synapis-instincts/       <-- Knowledge base (always active)
-    synapis-researcher/      <-- Deep research (always active)
-    synapis-optimizer/       <-- Context optimization (always active)
-    _library/                <-- Dormant skills (installed on demand)
-    _archived/               <-- Retired skills (recoverable)
-    _catalog.json            <-- Skill registry with token estimates
-    _passive-rules.json      <-- Automatic guardrails
-    _operator-state.json     <-- Your identity + decisions (cross-project)
-    _projects.json           <-- Project registry
-  commands/                  <-- Slash commands (/evolve, /clone, etc.)
+    skill-router/              <-- Orchestrator (always active)
+    sinapsis-learning/         <-- Learning engine (always active)
+    _library/                  <-- Dormant skills (installed on demand)
+    _archived/                 <-- Retired skills (recoverable)
+    _catalog.json              <-- Skill registry with token estimates
+    _passive-rules.json        <-- Automatic guardrails
+    _passive-activator.sh      <-- Hook: fires matching passive rules
+    _instinct-activator.sh     <-- Hook: injects matched instincts
+    _instincts-index.json      <-- Instinct registry
+    _instinct-proposals.json   <-- Draft proposals from session-learner
+    _project-context.sh        <-- Hook: injects project context (once/session)
+    _session-learner.sh        <-- Stop hook: writes context + detects patterns
+    _operator-state.json       <-- Your identity + decisions (cross-project)
+    _projects.json             <-- Project registry
+  commands/                    <-- Slash commands (/evolve, /clone, etc.)
+  homunculus/
+    projects/{hash}/
+      observations.jsonl       <-- Raw tool observations (local only)
+      context.md               <-- Last session summary (14-day TTL)
 ```
-
-### Token Budget
-
-| Component | Tokens | When |
-|-----------|--------|------|
-| 5 global skills | ~2,700 | Every session |
-| Passive rules | ~155 | Every session |
-| Operator state | ~200-500 | Every session |
-| Project skills | ~500-2,000 | Per project |
-| **Total** | **~3,500-5,500** | vs ~25,000 before |
-
----
-
-## For Existing Users
-
-Already have skills installed? Run `/skill-audit` after installing Synapis.
-
-It will:
-1. Scan all your existing skills and commands
-2. Calculate token overhead per skill
-3. Detect duplicates and conflicts
-4. Propose a cleanup plan with token savings
-5. Ask permission before changing anything
-
-**Nothing is deleted without your approval.** Everything archived is recoverable.
 
 ---
 
 ## FAQ
 
 **Does this work with any Claude Code project?**
-Yes. Synapis is project-agnostic. It adapts to whatever you're building.
+Yes. Sinapsis is project-agnostic. It adapts to whatever you're building.
 
 **Will it slow down Claude?**
-The opposite. By reducing token overhead by 90%, Claude has more context for actual work.
+No. Async hooks don't block responses. By reducing token overhead by ~90%, Claude has more context for actual work.
 
 **Can I use it without the learning system?**
 Yes. Choose [3] Freestyle in the launcher for vanilla Claude Code.
 
-**Can I create my own skills?**
-Yes. Use `/evolve` to turn mature patterns into skills, or create them manually in `_library/`.
+**Can I create my own instincts?**
+Yes. Edit `_instincts-index.json` directly, or use `/evolve`, or tell Claude "learn this pattern."
+
+**Can I create my own passive rules?**
+Yes. Use `/evolve → [R]` or edit `_passive-rules.json` directly.
 
 **Does it work on Windows, Mac, and Linux?**
 Yes. Installers for all three platforms included.
+
+**Is my data sent anywhere?**
+No. All observations, instincts, and context files stay in `~/.claude/homunculus/` on your machine.
 
 ---
 
 ## Want More?
 
-Synapis is the open-source foundation. If you want:
+Sinapsis is the open-source foundation. If you want:
 
 - **Custom skills** for your business or industry
 - **Mentoring** on how to build and optimize your own skill system
 - **Advanced features** like marketplace integration and team sharing
-- **Training** for your team on Claude Code + Synapis
+- **Training** for your team on Claude Code + Sinapsis
 
 Visit **[salgadoia.com](https://salgadoia.com)** for mentoring, courses, and consulting.
 
@@ -281,7 +280,7 @@ Visit **[salgadoia.com](https://salgadoia.com)** for mentoring, courses, and con
 
 ## License
 
-Synapis is **source-available** under a custom license:
+Sinapsis is **source-available** under a custom license:
 
 - **Free** for personal and internal business use
 - **Free** to study, modify, and learn from
@@ -299,4 +298,4 @@ Powered by [Claude Code](https://claude.ai/code) by Anthropic.
 
 ---
 
-*Synapis: because your AI assistant should remember who you are.*
+*Sinapsis: because your AI assistant should remember who you are.*
