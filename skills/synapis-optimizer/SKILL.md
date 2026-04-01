@@ -174,14 +174,14 @@ MEMORY STATUS
 ```
 INSTINCT STATUS
 
-  Total: 43 instincts
-  Active (confidence >= 0.5): 31
-  Stale (no hit in 60+ days): 7
-  Low confidence (< 0.3): 5
+  Total: 15 instincts
+  Permanent: 3 (highest priority)
+  Confirmed: 8 (active, injected on match)
+  Drafts:    4 (pending review)
 
   Recommendations:
-  1. Archive 5 low-confidence instincts (likely noise)
-  2. Review 7 stale instincts (may be obsolete)
+  1. Review 4 draft proposals with /analyze-session
+  2. Consider promoting mature confirmed instincts to permanent
 
   [1] Archive low-conf  [2] Review stale  [A] Both  [X] Skip
 ```

@@ -157,7 +157,7 @@ copy /Y core\_project-context.sh %USERPROFILE%\.claude\skills\
 copy /Y core\_instincts-index.json %USERPROFILE%\.claude\skills\
 ```
 
-**Then update `settings.json`** — see `core/settings.template.json` for the 7-hook configuration. If you already have hooks, merge them rather than overwriting.
+**Then update `settings.json`** — see `core/settings.template.json` for the 6-hook configuration. If you already have hooks, merge them rather than overwriting.
 
 ---
 
@@ -243,7 +243,7 @@ Open Claude Code
 
 ## The Hook Architecture (v4.1)
 
-Sinapsis uses 7 deterministic hooks configured in `settings.json`:
+Sinapsis uses 6 deterministic hooks configured in `settings.json`:
 
 | Hook | Event | Type | Purpose |
 |------|-------|------|---------|

@@ -64,17 +64,15 @@ PROJECT: project-alpha
 
   TOKEN OVERHEAD: ~9,800 tokens/session
 
-  INSTINCTS (45):
-    Laws:        5
-    Instincts:   12
-    Patterns:    15
-    Hypotheses:  8
-    Observations: 5
+  INSTINCTS (15):
+    Permanent:   3
+    Confirmed:   8
+    Drafts:      4 (pending /analyze-session)
 
   TOP INSTINCTS:
-    [0.92] DB tables -> add timestamps (12 hits)
-    [0.88] API errors -> use AppError class (8 hits)
-    [0.85] Before deploy -> run tests (6 hits)
+    [permanent] security: "Never hardcode secrets"
+    [confirmed] git: "Use conventional commits"
+    [confirmed] code-quality: "Handle errors explicitly"
 
   BLUEPRINT: Available (can be cloned with /clone)
 
