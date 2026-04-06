@@ -1,78 +1,54 @@
-# /instinct-status -- Instinct Dashboard
-
-> Show all instincts grouped by level (permanent, confirmed, draft)
-> with their domains, trigger patterns, and injection status.
-
+---
+name: instinct-status
+description: Muestra todos los instincts aprendidos (proyecto + globales) con confidence scoring
+command: true
 ---
 
-## Trigger
+# /instinct-status
 
-Run with `/instinct-status` or "show my instincts".
+## Qué hace
 
----
+Muestra el estado de todos los instincts del sistema NorteIA Continuous Learning.
 
-## Process
+## Implementación
 
-1. Read `~/.claude/skills/_instincts-index.json`
-2. Read `~/.claude/skills/_instinct-proposals.json` (if exists, for drafts)
-3. Group by level: permanent → confirmed → draft
-4. Display dashboard
+1. Detectar proyecto actual (git remote hash o path)
+2. Leer instincts de `~/.claude/homunculus/projects/<hash>/instincts/personal/`
+3. Leer instincts globales de `~/.claude/homunculus/instincts/personal/`
+4. Mostrar tabla con: ID, trigger, confidence, domain, scope, marca
 
----
-
-## Dashboard Format
+## Formato de salida
 
 ```
-INSTINCT STATUS
+══════════════════════════════════════════════════
+  INSTINCT STATUS — NorteIA Continuous Learning
+  Proyecto: blackstone-pitch (a1b2c3d4e5f6)
+══════════════════════════════════════════════════
 
-  Active instincts: 5 (2 permanent + 3 confirmed)
-  Pending proposals: 2 drafts (review with /analyze-session)
-  Domain dedup: max 3 domains injected per tool use
+PROJECT-SCOPED (4 instincts):
+  ● html-interactivo-para-pitch    [pitch]     0.80  norteia
+  ● blackstone-3-lineas-servicio   [contratos] 0.75  norteia
+  ● roi-calculator-obligatorio     [pitch]     0.70  norteia
+  ● diagnostico-8-areas            [lead]      0.65  norteia
 
-  ============================================
-  PERMANENT (always wins in domain dedup)
-  ============================================
+GLOBAL (12 instincts):
+  ● siempre-plan-director-ai-first [contratos] 0.95  norteia
+  ● leer-skill-md-antes-ejecutar   [workflow]  0.90  —
+  ● 5-entregables-por-modulo       [formacion] 0.90  norteia
+  ● formato-correccion-obligatorio [workflow]  0.90  —
+  ● castellano-por-defecto         [workflow]  0.95  —
+  ● research-first-antes-generar   [formacion] 0.85  norteia
+  ● marca-correcta-sin-preguntar   [workflow]  0.90  —
+  ○ nueva-observacion-pendiente    [n8n]       0.35  —
 
-  ID                       Domain        Trigger Pattern
-  env-vars-never-hardcode  security      api.?key|secret|password|...
-    → "Never hardcode secrets. Use environment variables."
+  ● = confidence ≥ 0.5  ○ = tentativo (<0.5)
 
-  ============================================
-  CONFIRMED (injected when trigger matches)
-  ============================================
-
-  ID                       Domain        Trigger Pattern
-  git-commit-conventional  git           git commit|commit message
-    → "Use conventional commits: feat/fix/chore/docs/..."
-
-  error-handling-explicit  code-quality  try|catch|error|exception
-    → "Handle errors explicitly. No silent catches."
-
-  api-auth-check           security      route\.ts|api/
-    → "API routes must validate authentication."
-
-  ============================================
-  DRAFTS (not injected — review with /analyze-session)
-  ============================================
-
-  ID          Type              Evidence
-  fix-edit    error_resolution  Edit error resolved — 2026-03-31
-  fix-bash    error_resolution  Bash error resolved — 2026-03-31
-
-  ============================================
-  DOMAIN DEDUP RULES
-  ============================================
-
-  When multiple instincts match the same tool use:
-  - One instinct per domain (permanent > confirmed)
-  - Maximum 3 domains injected simultaneously
-  - Drafts are NEVER auto-injected
-
-  ============================================
-  Actions:
-  [A] /analyze-session  -- Review and confirm drafts
-  [E] /evolve           -- Create new instincts or evolve to skills
-  [P] /promote          -- Promote confirmed → permanent
-  [D] Delete            -- Remove an instinct by ID
-  [X] Close
+Dominios: contratos(3) formacion(2) pitch(3) workflow(4) lead(1) n8n(1)
+Total: 16 instincts | 4 project | 12 global
+══════════════════════════════════════════════════
 ```
+
+## Lo que NO hacer
+- No inventar instincts que no existan en los ficheros
+- No mostrar observaciones crudas, solo instincts procesados
+- No modificar ficheros — este comando es solo lectura

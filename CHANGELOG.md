@@ -1,5 +1,56 @@
 # Changelog
 
+## v4.2.2 — 2026-04-06
+
+### Added
+- **Multi-project /eod**: `_eod-gather.sh` deterministic script scans ALL projects worked today via homunculus, aggregates git data per project root, outputs structured JSON for consolidated EOD summary
+- **`_eod-gather.sh`**: new helper script in `core/` — reads homunculus/projects/ for today's observations, cross-references projects.json for names/roots, runs git log/status/branch per project
+- **`/session-end` command**: added to `commands/` — was missing from installer, users couldn't see the command
+- **E2E pipeline test**: 25 tests across 6 stages (observe → learn → activate → gather → bridge → integrity) in isolated sandbox
+- **12 TDD tests** for `_eod-gather.sh`: multi-project detection, stale skip, hash fallback, observation counts, schema validation
+
+### Fixed
+- **`projectName` scope bug in `_session-learner.sh`**: variable was declared inside JOB 1 try/catch but used in JOB 2 outside it → `ReferenceError` silenced by `2>/dev/null` — proposals were never written since v4.2.0. Discovered by E2E test.
+- **`eod.md` single-project limitation**: now uses `_eod-gather.sh` instead of running git commands against current directory only
+
+### Changed
+- Test count: 37 → 78 (21 unit + 12 TDD + 25 E2E + 20 security)
+- `install.sh` version bumped to v4.2.2, now copies `_eod-gather.sh`
+
+---
+
+## v4.2.1 — 2026-04-06
+
+### Added
+- **Occurrences tiebreaker** in domain dedup: when two instincts share the same domain and level, the one with more occurrences wins (inspired by fs-cortex confidence granularity — credit: Fernando Montero)
+- **Domain pre-filter by project stack**: reads `context.md` to detect project tech, skips instincts from irrelevant domains before regex matching
+
+### Changed
+- Instinct activator sort: level priority preserved, occurrences used as secondary sort key
+- Domain dedup: `ALWAYS_DOMAINS` set (general, git, security, operations, quality) always passes pre-filter
+
+---
+
+## v4.2.0 — 2026-04-05
+
+### Added
+- **3 pattern detectors** in `_session-learner.sh`: error-fix (improved), user-corrections, workflow-chains
+- **Occurrence tracking** in `_instinct-activator.sh`: each instinct match increments `occurrences`, `first_triggered`, `last_triggered`
+- **Auto-promote**: draft instincts with 5+ occurrences automatically promoted to confirmed
+- **Atomic writes**: instinct-activator uses tmp + rename to prevent index corruption
+- **Enriched proposals**: `project_name`, `sample_input`, `sample_output` in every proposal
+- **13 TDD tests** covering all 3 patterns + occurrence tracking + auto-promote + atomic writes
+
+### Changed
+- Session learner window: 100 → 1000 lines (covers parallel sessions)
+- Instincts index schema v4.2: added `occurrences`, `first_triggered`, `last_triggered` fields
+
+### Fixed
+- 97% of observations were silently discarded per session (100/~3000+)
+- Proposals were generic — now include project context and samples
+
+---
+
 ## v4.1.1 — 2026-04-01
 
 ### Fixed: Critical — Auto-resume between sessions was broken

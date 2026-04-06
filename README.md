@@ -1,4 +1,4 @@
-# Sinapsis v4.1
+# Sinapsis v4.2.2
 
 ### The skill system for Claude Code that learns and adapts to you.
 
@@ -23,18 +23,18 @@ Think of it as going from a dumb terminal to an assistant that actually knows yo
 
 ---
 
-## What's New in v4.1
+## What's New in v4.2
 
 | Feature | Description |
 |---------|-------------|
-| **Closed learning pipeline** | observe → session-learner → proposals → /analyze-session → inject. All connected. |
-| **Project context bridge** | `context.md` written at session end, injected at next session start. Never lose thread. |
-| **Domain deduplication** | One instinct per domain per tool use. No contradictions. Max 3. |
-| **3-level confidence** | `draft` / `confirmed` / `permanent`. No more decimal scoring noise. |
-| **Honest observation model** | Hooks are deterministic scripts. No fake "real-time passive analysis." |
-| **Token efficiency** | 2 global skills always active (was 5). Injected content is only what matches (~50–200 tokens). |
+| **3 pattern detectors** | error-fix, user-corrections, workflow-chains. Session-learner now catches 3x more patterns. |
+| **Occurrence tracking** | Each instinct match increments counters. Auto-promote draft→confirmed at 5+ matches. |
+| **Multi-project /eod** | `_eod-gather.sh` scans ALL projects worked today, not just the current one. |
+| **Domain pre-filter** | Reads project stack from `context.md`, skips irrelevant instincts before regex matching. |
+| **Occurrences tiebreaker** | Same domain + same level? Higher occurrences wins in dedup. |
+| **78 tests** | 21 unit + 12 TDD + 25 E2E + 20 security. Pipeline tested end-to-end in sandbox. |
 
-See [CHANGELOG.md](CHANGELOG.md) for full details.
+See [CHANGELOG.md](CHANGELOG.md) for full details, including v4.1 → v4.2 changes.
 
 ---
 

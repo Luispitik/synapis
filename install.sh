@@ -1,6 +1,6 @@
 #!/bin/bash
 # ============================================================
-#  Sinapsis v4.1 — Installer for macOS / Linux
+#  Sinapsis v4.2.2 — Installer for macOS / Linux
 #  Skills on Demand for Claude Code
 #  https://github.com/Luispitik/sinapsis-3.2
 # ============================================================
@@ -28,7 +28,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 echo ""
 echo -e "${PURPLE}${BOLD}============================================================${NC}"
-echo -e "${PURPLE}${BOLD}  Sinapsis v4.1 — Skills on Demand for Claude Code${NC}"
+echo -e "${PURPLE}${BOLD}  Sinapsis v4.2.2 — Skills on Demand for Claude Code${NC}"
 echo -e "${PURPLE}${BOLD}  The system that learns and adapts to you${NC}"
 echo -e "${PURPLE}${BOLD}============================================================${NC}"
 echo ""
@@ -52,7 +52,7 @@ fi
 
 if ! command -v node &> /dev/null; then
     echo -e "${RED}  ERROR${NC} Node.js not found."
-    echo -e "${RED}         Sinapsis v4.1 hooks require Node.js.${NC}"
+    echo -e "${RED}         Sinapsis v4.2 hooks require Node.js.${NC}"
     echo -e "${RED}         Install it: https://nodejs.org${NC}"
     exit 1
 else
@@ -143,13 +143,15 @@ cp "$SCRIPT_DIR/core/_passive-activator.sh" "$SKILLS_DIR/_passive-activator.sh"
 cp "$SCRIPT_DIR/core/_instinct-activator.sh" "$SKILLS_DIR/_instinct-activator.sh"
 cp "$SCRIPT_DIR/core/_session-learner.sh" "$SKILLS_DIR/_session-learner.sh"
 cp "$SCRIPT_DIR/core/_project-context.sh" "$SKILLS_DIR/_project-context.sh"
+cp "$SCRIPT_DIR/core/_eod-gather.sh" "$SKILLS_DIR/_eod-gather.sh"
 
 chmod +x "$SKILLS_DIR/_passive-activator.sh"
 chmod +x "$SKILLS_DIR/_instinct-activator.sh"
 chmod +x "$SKILLS_DIR/_session-learner.sh"
 chmod +x "$SKILLS_DIR/_project-context.sh"
+chmod +x "$SKILLS_DIR/_eod-gather.sh"
 
-echo -e "${GREEN}  OK${NC} 4 hook scripts installed and made executable"
+echo -e "${GREEN}  OK${NC} 5 hook scripts installed and made executable"
 
 # ── Step 6: Configure settings.json ──
 echo -e "${BLUE}[6/8]${NC} Configuring hooks in settings.json..."
@@ -215,9 +217,9 @@ echo -e "${GREEN}  OK${NC} $cmd_count commands installed"
 echo ""
 echo -e "${GREEN}${BOLD}============================================================${NC}"
 if $UPGRADING; then
-    echo -e "${GREEN}${BOLD}  Sinapsis v4.1 upgrade complete!${NC}"
+    echo -e "${GREEN}${BOLD}  Sinapsis v4.2.2 upgrade complete!${NC}"
 else
-    echo -e "${GREEN}${BOLD}  Sinapsis v4.1 installed!${NC}"
+    echo -e "${GREEN}${BOLD}  Sinapsis v4.2.2 installed!${NC}"
 fi
 echo -e "${GREEN}${BOLD}============================================================${NC}"
 echo ""
@@ -225,7 +227,7 @@ echo -e "  ${BOLD}What was installed:${NC}"
 echo -e "  - 2 global skills (always active: skill-router + sinapsis-learning)"
 echo -e "  - $skill_count total skills"
 echo -e "  - $cmd_count slash commands (/evolve, /clone, /system-status...)"
-echo -e "  - 4 hook scripts (passive-activator, instinct-activator, session-learner, project-context)"
+echo -e "  - 5 hook scripts (passive-activator, instinct-activator, session-learner, project-context, eod-gather)"
 echo -e "  - Core config: catalog, passive rules, instincts index, operator state"
 echo ""
 echo -e "  ${BOLD}Next step:${NC}"

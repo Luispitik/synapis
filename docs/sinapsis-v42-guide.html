@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sinapsis v4.2.2 — Continuous Learning Engine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--copper:#C4956A;--bg:#050505;--surface:#111111;--surface2:#1a1a1a;--border:rgba(196,149,106,0.15);--text:#FAFAFA;--dim:#8B8B8B;--muted:#555;--font-h:'Playfair Display',serif;--font-b:'Outfit',sans-serif;--font-m:'JetBrains Mono',monospace}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--font-b);font-weight:400;font-size:15px;line-height:1.7}
+.reveal{opacity:0;transform:translateY(20px);transition:opacity .5s,transform .5s}.reveal.visible{opacity:1;transform:none}
+a{color:var(--copper);text-decoration:none}
+/* NAV */
+nav{position:fixed;left:0;top:0;width:220px;height:100vh;background:var(--surface);border-right:1px solid var(--border);padding:28px 16px;z-index:100;overflow-y:auto}
+nav .logo{font-family:var(--font-h);font-size:18px;color:var(--copper);margin-bottom:24px}
+nav a{display:block;font-size:13px;color:var(--dim);padding:6px 10px;border-radius:6px;margin-bottom:2px;transition:all .2s}
+nav a:hover,nav a.active{color:var(--text);background:rgba(196,149,106,0.08)}
+nav .ver{font-family:var(--font-m);font-size:10px;color:var(--muted);margin-top:20px;padding:0 10px}
+main{margin-left:220px;max-width:900px;padding:40px 48px 80px}
+section{margin-bottom:64px}
+h2{font-family:var(--font-h);font-size:28px;color:var(--copper);margin-bottom:16px}
+h3{font-family:var(--font-b);font-weight:600;font-size:17px;margin-bottom:10px;color:var(--text)}
+p{color:var(--dim);margin-bottom:12px;max-width:720px}
+code{font-family:var(--font-m);font-size:13px;background:var(--surface2);color:var(--copper);padding:2px 6px;border-radius:4px}
+.tag{display:inline-block;font-family:var(--font-m);font-size:11px;color:var(--copper);border:1px solid var(--border);padding:3px 10px;border-radius:20px;margin-bottom:12px}
+/* HERO */
+.hero{background:linear-gradient(135deg,#111 0%,#1a1208 100%);border:1px solid var(--border);border-radius:16px;padding:48px;margin-bottom:48px;position:relative;overflow:hidden}
+.hero::after{content:'';position:absolute;right:-80px;top:-80px;width:300px;height:300px;border-radius:50%;background:rgba(196,149,106,0.05)}
+.hero h1{font-family:var(--font-h);font-size:38px;color:var(--text);line-height:1.2;margin-bottom:12px}
+.hero h1 span{color:var(--copper)}
+.hero-sub{font-size:15px;color:var(--dim);max-width:600px;margin-bottom:24px}
+.pills{display:flex;flex-wrap:wrap;gap:10px}
+.pill{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-size:12px;color:var(--dim)}
+.pill strong{display:block;font-family:var(--font-m);font-size:20px;color:var(--copper);line-height:1}
+/* TIMELINE */
+.timeline{position:relative;padding-left:28px}
+.timeline::before{content:'';position:absolute;left:8px;top:0;bottom:0;width:2px;background:var(--border)}
+.tl-node{position:relative;margin-bottom:28px;padding-left:24px}
+.tl-node::before{content:'';position:absolute;left:-24px;top:6px;width:14px;height:14px;border-radius:50%;background:var(--surface);border:2px solid var(--copper)}
+.tl-node.current::before{background:var(--copper)}
+.tl-ver{font-family:var(--font-m);font-size:12px;color:var(--copper);margin-bottom:4px}
+.tl-title{font-weight:600;font-size:15px;margin-bottom:4px}
+.tl-desc{font-size:13px;color:var(--dim)}
+/* PIPELINE */
+.pipeline{display:flex;gap:12px;flex-wrap:wrap;margin:20px 0}
+.pipe-card{flex:1;min-width:140px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center;transition:border-color .3s}
+.pipe-card:hover{border-color:var(--copper)}
+.pipe-icon{font-size:28px;margin-bottom:8px;display:block}
+.pipe-name{font-weight:600;font-size:14px;margin-bottom:4px}
+.pipe-when{font-family:var(--font-m);font-size:10px;color:var(--copper);margin-bottom:6px}
+.pipe-desc{font-size:12px;color:var(--dim)}
+.pipe-arrow{display:flex;align-items:center;color:var(--muted);font-size:20px;flex-shrink:0}
+/* FILE TREE */
+.tree{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 24px;font-family:var(--font-m);font-size:12px;line-height:2;overflow-x:auto}
+.tree .f{color:var(--copper)}
+.tree .d{color:var(--text);font-weight:500}
+.tree .desc{color:var(--muted);font-size:11px}
+/* STEPS */
+.step-grid{display:flex;flex-direction:column;gap:16px}
+.step-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 24px;display:flex;gap:16px;align-items:flex-start;transition:border-color .3s}
+.step-card:hover{border-color:var(--copper)}
+.step-num{font-family:var(--font-h);font-size:28px;color:var(--copper);flex-shrink:0;width:36px}
+.step-body h3{margin-bottom:6px}
+.step-body p{font-size:13px;margin-bottom:6px}
+.step-body code{font-size:11px}
+/* TABLE */
+.cmd-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:12px}
+.cmd-table th{text-align:left;font-weight:500;color:var(--copper);padding:8px 12px;border-bottom:1px solid var(--border);font-family:var(--font-m);font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+.cmd-table td{padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.03);color:var(--dim)}
+.cmd-table td:first-child{font-family:var(--font-m);color:var(--text);font-size:12px}
+.cmd-table tr:hover td{background:rgba(196,149,106,0.03)}
+.badge{font-family:var(--font-m);font-size:10px;padding:2px 8px;border-radius:4px;border:1px solid var(--border)}
+.b-mon{color:#6EC1E4;border-color:rgba(110,193,228,0.3)}
+.b-learn{color:#16D877;border-color:rgba(22,216,119,0.3)}
+.b-pipe{color:var(--copper);border-color:var(--border)}
+.b-mgmt{color:#FFBA00;border-color:rgba(255,186,0,0.3)}
+/* LAUNCHER */
+.launcher-opts{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0}
+.launcher-opt{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;text-align:center;transition:border-color .3s}
+.launcher-opt:hover{border-color:var(--copper)}
+.launcher-opt .num{font-family:var(--font-h);font-size:24px;color:var(--copper);margin-bottom:8px}
+.launcher-opt h4{font-size:14px;margin-bottom:4px}
+.launcher-opt p{font-size:12px;color:var(--dim)}
+/* DIFF */
+.diff{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+.diff-col{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;font-size:13px}
+.diff-col h4{font-family:var(--font-m);font-size:12px;margin-bottom:10px}
+.diff-col.old h4{color:#ff6b6b}
+.diff-col.new h4{color:#16D877}
+.diff-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.03);color:var(--dim)}
+.diff-row .val{font-family:var(--font-m);font-size:12px;color:var(--text)}
+/* FAQ */
+.faq-item{border-bottom:1px solid var(--border);padding:16px 0}
+.faq-q{font-weight:600;font-size:14px;margin-bottom:6px;cursor:pointer}
+.faq-a{font-size:13px;color:var(--dim)}
+/* RESPONSIVE */
+@media(max-width:900px){
+  nav{display:none}
+  main{margin-left:0;padding:24px 20px 60px}
+  .hero{padding:28px 20px}
+  .hero h1{font-size:26px}
+  .diff,.launcher-opts{grid-template-columns:1fr}
+  .pipeline{flex-direction:column}
+  .pipe-arrow{transform:rotate(90deg);justify-content:center}
+}
+@media print{
+  nav{display:none}
+  main{margin-left:0}
+  body{background:#fff;color:#111}
+  .hero{background:#f5f0eb;border-color:#ddd}
+  h2,.pill strong,.tl-ver{color:#8B6914}
+  .step-card,.pipe-card,.diff-col,.tree{border-color:#ddd;background:#fafafa}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">Sinapsis</div>
+  <a href="#hero">Inicio</a>
+  <a href="#timeline">De donde venimos</a>
+  <a href="#pipeline">Pipeline</a>
+  <a href="#files">Archivos</a>
+  <a href="#tutorial">Tutorial</a>
+  <a href="#commands">Comandos</a>
+  <a href="#launcher">En la practica</a>
+  <a href="#changelog">Changelog</a>
+  <a href="#faq">FAQ</a>
+  <div class="ver">v4.2.2 / 2026-04-06</div>
+</nav>
+
+<main>
+
+<!-- 1. HERO -->
+<section id="hero" class="hero reveal">
+  <div class="tag">Sinapsis v4.2.2 — Continuous Learning Engine</div>
+  <h1>Tu agente <span>aprende de ti</span></h1>
+  <p class="hero-sub">Sistema de aprendizaje continuo para Claude Code. Pipeline cerrado, determinista, zero tokens en observacion. Cada sesion alimenta el conocimiento. Cada conocimiento mejora la siguiente sesion.</p>
+  <div class="pills">
+    <div class="pill"><strong>13K+</strong>observaciones</div>
+    <div class="pill"><strong>38</strong>instincts</div>
+    <div class="pill"><strong>3</strong>patrones</div>
+    <div class="pill"><strong>1000</strong>lineas/sesion</div>
+    <div class="pill"><strong>5+</strong>auto-promote</div>
+    <div class="pill"><strong>78</strong>tests</div>
+  </div>
+</section>
+
+<!-- 2. TIMELINE -->
+<section id="timeline" class="reveal">
+  <h2>De donde venimos</h2>
+  <div class="timeline">
+    <div class="tl-node">
+      <div class="tl-ver">v1.0 — Marzo 2026</div>
+      <div class="tl-title">Aprendizaje real</div>
+      <div class="tl-desc">6 tipos de senal, confidence 0.0-1.0, /analyze-observations leia el historico completo. Self-healing a 3 ocurrencias. Pero: demasiados ficheros, acoplado, costoso en tokens.</div>
+    </div>
+    <div class="tl-node">
+      <div class="tl-ver">v3.5 — 31 Marzo 2026</div>
+      <div class="tl-title">Hardening critico</div>
+      <div class="tl-desc">Fusion de continuous-learning + self-healer. De 5 skills always-on a 2. Token savings del 57% (15K a 6.5K). Confidence simplificada a 3 niveles.</div>
+    </div>
+    <div class="tl-node">
+      <div class="tl-ver">v4.0 — 31 Marzo 2026</div>
+      <div class="tl-title">Pipeline cerrado</div>
+      <div class="tl-desc">4 hooks deterministas: observe, passive-activator, instinct-activator, session-learner. 38 instincts YAML migrados a JSON. Zero tokens en hooks.</div>
+    </div>
+    <div class="tl-node">
+      <div class="tl-ver">v4.1.1 — 31 Marzo 2026</div>
+      <div class="tl-title">Autonomia maxima</div>
+      <div class="tl-desc">Drafts excluidos de inyeccion, dedup por dominio, quarantine. Pero: session-learner leia solo 100 lineas, 1 patron, sin acumulacion de confianza.</div>
+    </div>
+    <div class="tl-node current">
+      <div class="tl-ver">v4.2 — 5 Abril 2026</div>
+      <div class="tl-title">Aprendizaje real de vuelta</div>
+      <div class="tl-desc">1000 lineas por sesion, 3 patrones (error-fix, correcciones, workflows), occurrence tracking, auto-promote a 5+, linting diario Karpathy.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 3. PIPELINE -->
+<section id="pipeline" class="reveal">
+  <h2>Como funciona</h2>
+  <p>Pipeline cerrado: cada componente tiene un escritor y un lector. Los datos fluyen automaticamente de la captura a la activacion.</p>
+  <div class="pipeline">
+    <div class="pipe-card">
+      <span class="pipe-icon">&#x1f441;</span>
+      <div class="pipe-name">Captura</div>
+      <div class="pipe-when">Cada tool call</div>
+      <div class="pipe-desc">observe_v3.1 registra cada invocacion con scrubbing de secrets, err_msg extraido (max 500 chars) y watchdog de errores criticos (FATAL/OOM/segfault)</div>
+    </div>
+    <div class="pipe-arrow">&#8594;</div>
+    <div class="pipe-card">
+      <span class="pipe-icon">&#x1f9e0;</span>
+      <div class="pipe-name">Aprendizaje</div>
+      <div class="pipe-when">Al cerrar sesion</div>
+      <div class="pipe-desc">session-learner detecta 3 tipos de patron en las ultimas 1000 lineas</div>
+    </div>
+    <div class="pipe-arrow">&#8594;</div>
+    <div class="pipe-card">
+      <span class="pipe-icon">&#x1f4d6;</span>
+      <div class="pipe-name">Indexado</div>
+      <div class="pipe-when">Continuo</div>
+      <div class="pipe-desc">instincts-index.json acumula occurrences y timestamps por instinct</div>
+    </div>
+    <div class="pipe-arrow">&#8594;</div>
+    <div class="pipe-card">
+      <span class="pipe-icon">&#x26a1;</span>
+      <div class="pipe-name">Activacion</div>
+      <div class="pipe-when">Cada PreToolUse</div>
+      <div class="pipe-desc">instinct-activator matchea regex con pre-filtro por stack del proyecto, inyecta systemMessage, trackea occurrences con tiebreaker</div>
+    </div>
+    <div class="pipe-arrow">&#8594;</div>
+    <div class="pipe-card">
+      <span class="pipe-icon">&#x1f680;</span>
+      <div class="pipe-name">Evolucion</div>
+      <div class="pipe-when">Manual o diario</div>
+      <div class="pipe-desc">/evolve clusteriza instincts en skills. Linting genera knowledge-index</div>
+    </div>
+  </div>
+
+  <h3 style="margin-top:28px">Puente entre sesiones</h3>
+  <p>Lo que hace que el sistema no pierda el hilo de una sesion a otra:</p>
+  <div class="pipeline" style="margin-top:12px">
+    <div class="pipe-card">
+      <span class="pipe-icon">&#x1f4cb;</span>
+      <div class="pipe-name">/eod</div>
+      <div class="pipe-when">Final del dia</div>
+      <div class="pipe-desc">Multi-proyecto: <code>_eod-gather.sh</code> escanea TODOS los proyectos del dia via homunculus, agrega git data de cada root. Guarda en _daily-summaries/</div>
+    </div>
+    <div class="pipe-arrow">&#8594;</div>
+    <div class="pipe-card">
+      <span class="pipe-icon">&#x1f4c4;</span>
+      <div class="pipe-name">context.md + daily summary</div>
+      <div class="pipe-when">Auto (session-learner + /eod)</div>
+      <div class="pipe-desc">context.md = snapshot tecnico. daily summary = prioridades y Quick Resume para manana</div>
+    </div>
+    <div class="pipe-arrow">&#8594;</div>
+    <div class="pipe-card" style="border-color:var(--copper)">
+      <span class="pipe-icon">&#x1f504;</span>
+      <div class="pipe-name">project-context.sh</div>
+      <div class="pipe-when">Inicio siguiente sesion</div>
+      <div class="pipe-desc">Inyecta ambos automaticamente como systemMessage. Solo 1 vez por sesion. El contexto viaja solo</div>
+    </div>
+  </div>
+</section>
+
+<!-- 4. FILE TREE -->
+<section id="files" class="reveal">
+  <h2>Estructura de archivos</h2>
+  <p>Agrupados por funcion. Todo vive dentro de <code>~/.claude/</code></p>
+
+  <!-- Hooks group -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px">
+
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px">
+      <h3 style="font-size:14px;color:var(--copper);margin-bottom:14px;font-family:var(--font-m)">HOOKS (ejecutan automaticamente)</h3>
+      <div style="font-family:var(--font-m);font-size:12px;line-height:2.2">
+        <div style="display:flex;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.04);padding:2px 0">
+          <span style="color:var(--text)">observe_v3.py</span>
+          <span style="color:var(--dim);font-size:11px">Pre+Post ToolUse (async)</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.04);padding:2px 0">
+          <span style="color:var(--text)">_instinct-activator.sh</span>
+          <span style="color:var(--dim);font-size:11px">PreToolUse — inject + track</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.04);padding:2px 0">
+          <span style="color:var(--text)">_passive-activator.sh</span>
+          <span style="color:var(--dim);font-size:11px">PreToolUse — stack rules</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.04);padding:2px 0">
+          <span style="color:var(--text)">_project-context.sh</span>
+          <span style="color:var(--dim);font-size:11px">PreToolUse (1x) — session bridge</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.04);padding:2px 0">
+          <span style="color:var(--text)">_session-learner.sh</span>
+          <span style="color:var(--dim);font-size:11px">Stop — 3 patrones, 1000 lineas</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:2px 0">
+          <span style="color:var(--text)">_eod-gather.sh</span>
+          <span style="color:var(--dim);font-size:11px">Helper /eod — multi-proyecto</span>
+        </div>
+      </div>
+      <div style="margin-top:10px;font-size:11px;color:var(--muted)">Ubicacion: ~/.claude/skills/</div>
+    </div>
+
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px">
+      <h3 style="font-size:14px;color:var(--copper);margin-bottom:14px;font-family:var(--font-m)">REGISTROS (datos del sistema)</h3>
+      <div style="font-family:var(--font-m);font-size:12px;line-height:2.2">
+        <div style="display:flex;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.04);padding:2px 0">
+          <span style="color:var(--text)">_instincts-index.json</span>
+          <span style="color:var(--dim);font-size:11px">Tus instincts + occurrences</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.04);padding:2px 0">
+          <span style="color:var(--text)">_passive-rules.json</span>
+          <span style="color:var(--dim);font-size:11px">Reglas tecnicas de tu stack</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.04);padding:2px 0">
+          <span style="color:var(--text)">_instinct-proposals.json</span>
+          <span style="color:var(--dim);font-size:11px">Propuestas draft pendientes</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:2px 0">
+          <span style="color:var(--text)">_knowledge-index.md</span>
+          <span style="color:var(--dim);font-size:11px">Indice ejecutivo (linting diario)</span>
+        </div>
+      </div>
+      <div style="margin-top:10px;font-size:11px;color:var(--muted)">Ubicacion: ~/.claude/skills/</div>
+    </div>
+
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px">
+      <h3 style="font-size:14px;color:var(--copper);margin-bottom:14px;font-family:var(--font-m)">OBSERVACIONES (datos crudos)</h3>
+      <div style="font-family:var(--font-m);font-size:12px;line-height:2.2">
+        <div style="display:flex;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.04);padding:2px 0">
+          <span style="color:var(--text)">projects/{hash}/observations.jsonl</span>
+          <span style="color:var(--dim);font-size:11px">Tool calls por proyecto</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.04);padding:2px 0">
+          <span style="color:var(--text)">projects/{hash}/context.md</span>
+          <span style="color:var(--dim);font-size:11px">Snapshot ultima sesion</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:2px 0">
+          <span style="color:var(--text)">_daily-summaries/YYYY-MM-DD.md</span>
+          <span style="color:var(--dim);font-size:11px">Resumenes EOD</span>
+        </div>
+      </div>
+      <div style="margin-top:10px;font-size:11px;color:var(--muted)">Ubicacion: ~/.claude/homunculus/ y ~/.claude/skills/</div>
+    </div>
+
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px">
+      <h3 style="font-size:14px;color:var(--copper);margin-bottom:14px;font-family:var(--font-m)">COMANDOS (tu ejecutas)</h3>
+      <div style="font-family:var(--font-m);font-size:12px;line-height:2.2">
+        <div style="display:flex;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.04);padding:2px 0">
+          <span style="color:var(--text)">eod.md</span>
+          <span style="color:var(--dim);font-size:11px">/eod — resumen diario</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.04);padding:2px 0">
+          <span style="color:var(--text)">session-end.md</span>
+          <span style="color:var(--dim);font-size:11px">/session-end — cierre sesion</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.04);padding:2px 0">
+          <span style="color:var(--text)">analyze-observations.md</span>
+          <span style="color:var(--dim);font-size:11px">/analyze-observations</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.04);padding:2px 0">
+          <span style="color:var(--text)">evolve.md</span>
+          <span style="color:var(--dim);font-size:11px">/evolve — instincts a skills</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.04);padding:2px 0">
+          <span style="color:var(--text)">promote.md</span>
+          <span style="color:var(--dim);font-size:11px">/promote — subir nivel</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:2px 0">
+          <span style="color:var(--text)">instinct-status.md</span>
+          <span style="color:var(--dim);font-size:11px">/instinct-status — dashboard</span>
+        </div>
+      </div>
+      <div style="margin-top:10px;font-size:11px;color:var(--muted)">Ubicacion: ~/.claude/commands/</div>
+    </div>
+
+  </div>
+
+  <!-- Config -->
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-top:16px;display:flex;justify-content:space-between;align-items:center">
+    <div>
+      <span style="font-family:var(--font-m);font-size:13px;color:var(--text)">settings.json</span>
+      <span style="font-size:12px;color:var(--dim);margin-left:12px">Configuracion de hooks — define que se ejecuta en PreToolUse, PostToolUse y Stop</span>
+    </div>
+    <span style="font-family:var(--font-m);font-size:11px;color:var(--muted)">~/.claude/</span>
+  </div>
+</section>
+
+<!-- 5. TUTORIAL: DE CERO A SISTEMA COMPLETO -->
+<section id="tutorial" class="reveal">
+  <h2>De cero a sistema completo</h2>
+  <p>Sinapsis se instala con 3 instincts de ejemplo y 3 reglas basicas. El objetivo es que en 3-4 semanas tengas un sistema personalizado con 20-40 instincts de tu stack, reglas de tu equipo y skills propias. Asi es como se construye:</p>
+
+  <!-- SEMANA 0 -->
+  <h3 style="margin-top:28px;color:var(--copper)">Dia 0 — Instalacion</h3>
+  <div class="step-grid" style="margin-top:12px">
+    <div class="step-card">
+      <div class="step-num">0</div>
+      <div class="step-body">
+        <h3>Instalar Sinapsis</h3>
+        <p>Clona el repo y ejecuta el installer. Configura hooks en settings.json, copia scripts, crea archivos iniciales con 3 instincts de ejemplo.</p>
+        <code>git clone https://github.com/Luispitik/sinapsis-3.2 && cd sinapsis-3.2 && bash install.sh</code>
+        <p style="margin-top:8px">Resultado: 4 hooks activos (observe, passive-activator, instinct-activator, session-learner), 7 comandos disponibles, 3 instincts starter, 3 reglas pasivas basicas.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SEMANA 1 -->
+  <h3 style="margin-top:32px;color:var(--copper)">Semana 1 — Observar y sembrar</h3>
+  <p>Trabaja y cierra bien cada sesion. Sinapsis acumula datos y el contexto se pasa de una sesion a la siguiente.</p>
+  <div class="step-grid" style="margin-top:12px">
+    <div class="step-card">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <h3>Trabaja normalmente (3-5 sesiones)</h3>
+        <p>Cada tool call se registra en <code>observations.jsonl</code> automaticamente (async, 0 tokens). Al cerrar cada sesion, session-learner analiza las ultimas 1000 lineas y detecta patrones: errores que resolviste, archivos que editaste varias veces, secuencias de tools que repetiste.</p>
+        <p style="margin-top:8px"><strong style="color:var(--text)">Al final de cada dia, ejecuta <code>/eod</code>.</strong> Desde v4.2.2, /eod es <strong>multi-proyecto</strong>: ejecuta <code>_eod-gather.sh</code> que detecta TODOS los proyectos trabajados hoy (no solo el actual) via homunculus, agrega datos de git de cada root, y genera un resumen consolidado. Se guarda en <code>_daily-summaries/</code>.</p>
+        <p style="margin-top:8px;font-size:13px;color:var(--dim)">Cuando abras la siguiente sesion, <code>_project-context.sh</code> inyecta ese resumen + el context.md tecnico automaticamente. Claude te saluda con lo que hiciste ayer y lo que toca hoy. No pierdes el hilo entre sesiones.</p>
+        <p style="margin-top:8px;font-size:13px;color:var(--dim)">Opcionalmente, usa <code>/session-end</code> si quieres documentar sesiones intermedias (no solo al final del dia) con detalle de conversacion.</p>
+      </div>
+    </div>
+    <div class="step-card">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <h3>Anade 5-10 instincts manuales de tu stack</h3>
+        <p>Piensa: que errores cometes siempre? Que gotchas de tu framework te muerden cada vez? Edita <code>_instincts-index.json</code> y anadelos. Ejemplos por stack:</p>
+        <p style="font-size:12px;color:var(--dim);margin-top:6px">
+          <strong style="color:var(--text)">Next.js:</strong> EPERM en .next/cache, locale prefix siempre "always", await en streamText()<br>
+          <strong style="color:var(--text)">Supabase:</strong> RLS obligatorio, split queries para evitar PGRST200, 3 gate points de auth<br>
+          <strong style="color:var(--text)">Stripe:</strong> customerId en modelo User, webhooks en modo test vs live<br>
+          <strong style="color:var(--text)">Django:</strong> makemigrations antes de migrate, CORS en production, SECRET_KEY no hardcodeado<br>
+          <strong style="color:var(--text)">React:</strong> useEffect cleanup, key en listas, memo para componentes pesados
+        </p>
+      </div>
+    </div>
+    <div class="step-card">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <h3>Anade 3-5 reglas pasivas de tu equipo</h3>
+        <p>Edita <code>_passive-rules.json</code> con guardrails que apliquen a todos tus proyectos. Estas se inyectan SIEMPRE que el trigger matchee, sin importar el proyecto:</p>
+        <p style="font-size:12px;color:var(--dim);margin-top:6px">
+          <strong style="color:var(--text)">Seguridad:</strong> "Toda API route debe validar JWT", "Nunca hardcodear URLs de produccion"<br>
+          <strong style="color:var(--text)">Calidad:</strong> "Tests antes de commit", "Conventional commits en ingles"<br>
+          <strong style="color:var(--text)">Stack:</strong> "Siempre Supabase con RLS", "Deploy siempre en Vercel"
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SEMANA 2 -->
+  <h3 style="margin-top:32px;color:var(--copper)">Semana 2 — Analizar y confirmar</h3>
+  <p>Ya tienes datos. Ahora extraes conocimiento.</p>
+  <div class="step-grid" style="margin-top:12px">
+    <div class="step-card">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <h3>Ejecuta /instinct-status</h3>
+        <p>Mira que ha pasado: cuantas veces se han activado tus instincts manuales (occurrences), si hay drafts auto-detectados por session-learner, y si alguno ya se auto-promovio a confirmed (5+ matches).</p>
+        <code>/instinct-status</code>
+      </div>
+    </div>
+    <div class="step-card">
+      <div class="step-num">5</div>
+      <div class="step-body">
+        <h3>Ejecuta /analyze-observations</h3>
+        <p>Lee el historico de observaciones de tus proyectos. Detecta patrones que no estan cubiertos por tus instincts actuales: tools que usas mucho, errores recurrentes, secuencias repetidas. Te sugiere nuevos instincts con evidencia real.</p>
+        <code>/analyze-observations</code>
+        <p style="margin-top:6px">Acepta los que sean utiles. Descarta los que no. Cada aceptado entra como confirmed y se inyecta automaticamente a partir de ahora.</p>
+      </div>
+    </div>
+    <div class="step-card">
+      <div class="step-num">6</div>
+      <div class="step-body">
+        <h3>Revisa /passive-status</h3>
+        <p>Mira que reglas se activan mas (esas son utiles) y cuales nunca se activan (quizas el trigger es demasiado restrictivo o ya no aplican). Ajusta o elimina las que no funcionen.</p>
+        <code>/passive-status</code>
+      </div>
+    </div>
+  </div>
+
+  <!-- SEMANA 3+ -->
+  <h3 style="margin-top:32px;color:var(--copper)">Semana 3+ — Evolucionar</h3>
+  <p>Tu sistema ya tiene 15-25 instincts. Es hora de estructurar el conocimiento.</p>
+  <div class="step-grid" style="margin-top:12px">
+    <div class="step-card">
+      <div class="step-num">7</div>
+      <div class="step-body">
+        <h3>Ejecuta /evolve</h3>
+        <p>Clusteriza instincts por dominio. Si tienes 5 instincts sobre Supabase, /evolve propone crear una skill "supabase-pro" que los agrupe. Si tienes 3 sobre seguridad, propone una regla pasiva compuesta. El conocimiento pasa de atomico (instincts sueltos) a estructurado (skills y reglas).</p>
+        <code>/evolve</code>
+      </div>
+    </div>
+    <div class="step-card">
+      <div class="step-num">8</div>
+      <div class="step-body">
+        <h3>Promueve los mejores a permanentes</h3>
+        <p>Los instincts que llevan semanas activandose y nunca te han dado una sugerencia incorrecta son candidatos a <code>/promote</code>. Un instinct permanent tiene prioridad maxima y se aplica siempre.</p>
+        <code>/promote supabase-rls-required</code>
+      </div>
+    </div>
+    <div class="step-card">
+      <div class="step-num">9</div>
+      <div class="step-body">
+        <h3>El ciclo continuo</h3>
+        <p>A partir de aqui, el sistema crece solo. Cada sesion genera datos, session-learner detecta patrones, instinct-activator trackea lo que funciona, y tu haces /analyze-observations cada semana o dos para refinar. El linting diario detecta gaps automaticamente.</p>
+        <p style="margin-top:6px;font-size:13px;color:var(--text)">Resultado tipico en 1 mes: 25-40 instincts, 8-12 reglas pasivas, 2-3 skills evolucionadas. Tu agente ya sabe como trabajas.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 6. COMMANDS -->
+<section id="commands" class="reveal">
+  <h2>Comandos de Sinapsis</h2>
+  <p>Estos 9 comandos se instalan con Sinapsis. Son los mismos para todos los usuarios.</p>
+  <table class="cmd-table">
+    <thead><tr><th>Comando</th><th>Que hace</th><th>Cuando usarlo</th></tr></thead>
+    <tbody>
+      <tr><td>/eod</td><td>End of Day <strong>multi-proyecto</strong>: ejecuta <code>_eod-gather.sh</code> que escanea TODOS los proyectos trabajados hoy (via homunculus), agrega datos de git de cada root (commits, PRs, branch), estado de Sinapsis, y genera resumen consolidado. Guarda en _daily-summaries/ y se inyecta automaticamente al inicio de la siguiente sesion</td><td>Al final de cada dia de trabajo. El comando clave del ciclo diario.</td></tr>
+      <tr><td>/session-end</td><td>Documenta la sesion: lo que se hizo, pendiente, decisiones, archivos tocados. Guarda en memory/session-logs/</td><td>Al cerrar sesion. Complementa /eod con detalle de conversacion.</td></tr>
+      <tr><td>/instinct-status</td><td>Dashboard: todos tus instincts con dominio, nivel, occurrences y ultima activacion</td><td>Cada semana. Para ver que funciona y que no.</td></tr>
+      <tr><td>/passive-status</td><td>Dashboard: reglas pasivas con conteo de activaciones</td><td>Cuando quieras limpiar reglas inactivas.</td></tr>
+      <tr><td>/analyze-observations</td><td>Lee el historico de observaciones, detecta patrones no cubiertos, sugiere nuevos instincts</td><td>Despues de 5+ sesiones. El paso clave del aprendizaje.</td></tr>
+      <tr><td>/evolve</td><td>Clusteriza instincts maduros en skills completas o reglas pasivas compuestas</td><td>Cuando tengas 10+ instincts en un mismo dominio.</td></tr>
+      <tr><td>/promote</td><td>Sube un instinct de draft a confirmed, o de confirmed a permanent</td><td>Para instincts que llevan semanas funcionando bien.</td></tr>
+      <tr><td>/instinct-export</td><td>Exporta instincts a fichero YAML para backup o compartir con otro usuario</td><td>Antes de actualizar. O para compartir tu stack con un companero.</td></tr>
+      <tr><td>/instinct-import</td><td>Importa instincts desde fichero YAML de otro usuario o backup</td><td>Para arrancar rapido con instincts de alguien de tu mismo stack.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- 7. HOW IT WORKS IN PRACTICE -->
+<section id="launcher" class="reveal">
+  <h2>Ejemplo real: de 0 a sistema</h2>
+  <p>Esto es lo que pasa cuando instalas Sinapsis en un proyecto React + Supabase y trabajas 2 semanas:</p>
+
+  <h3 style="margin-top:20px">Dia 1: Instalacion</h3>
+  <div class="launcher-opts">
+    <div class="launcher-opt">
+      <div class="num">3</div>
+      <h4>instincts starter</h4>
+      <p>Supabase splits, Next.js cache, conventional commits. Genericos pero utiles.</p>
+    </div>
+    <div class="launcher-opt">
+      <div class="num">3</div>
+      <h4>reglas pasivas</h4>
+      <p>RLS obligatorio, JWT en APIs, security headers. Guardrails tecnicos basicos.</p>
+    </div>
+    <div class="launcher-opt">
+      <div class="num">0</div>
+      <h4>observaciones</h4>
+      <p>Vacio. Sinapsis empieza a observar desde tu primera sesion.</p>
+    </div>
+  </div>
+
+  <h3 style="margin-top:24px">Dia 5: Despues de 5 sesiones</h3>
+  <div class="launcher-opts">
+    <div class="launcher-opt">
+      <div class="num">3+5</div>
+      <h4>instincts</h4>
+      <p>Los 3 starter + 5 manuales que anadiste (Prisma generate, Stripe test mode, E2E diacriticos...)</p>
+    </div>
+    <div class="launcher-opt">
+      <div class="num">~800</div>
+      <h4>observaciones</h4>
+      <p>Tool calls acumulados. Session-learner ha detectado 2 patrones error-fix y 1 workflow repetido.</p>
+    </div>
+    <div class="launcher-opt">
+      <div class="num">3</div>
+      <h4>propuestas draft</h4>
+      <p>Patrones auto-detectados esperando tu revision en /analyze-observations.</p>
+    </div>
+  </div>
+
+  <h3 style="margin-top:24px">Dia 14: Primera evolucion</h3>
+  <div class="launcher-opts">
+    <div class="launcher-opt">
+      <div class="num">18</div>
+      <h4>instincts</h4>
+      <p>8 starter+manuales, 6 aceptados de /analyze-observations, 4 auto-promovidos (5+ matches).</p>
+    </div>
+    <div class="launcher-opt">
+      <div class="num">~2.500</div>
+      <h4>observaciones</h4>
+      <p>Historico creciendo. El linting diario genera knowledge-index automaticamente.</p>
+    </div>
+    <div class="launcher-opt">
+      <div class="num">1</div>
+      <h4>skill evolucionada</h4>
+      <p>/evolve detecto 5 instincts de Supabase y propuso crear la skill "supabase-pro".</p>
+    </div>
+  </div>
+
+  <h3 style="margin-top:24px">Dia 30: Sistema maduro</h3>
+  <div class="launcher-opts">
+    <div class="launcher-opt">
+      <div class="num">30+</div>
+      <h4>instincts</h4>
+      <p>Mezcla de manuales, auto-detectados y evolucionados. Tu agente sabe como trabajas.</p>
+    </div>
+    <div class="launcher-opt">
+      <div class="num">8-12</div>
+      <h4>reglas pasivas</h4>
+      <p>Guardrails de seguridad, calidad y stack. Se inyectan sin que hagas nada.</p>
+    </div>
+    <div class="launcher-opt">
+      <div class="num">2-3</div>
+      <h4>skills propias</h4>
+      <p>Agrupaciones de instincts por dominio. Tu manual de stack, generado desde tu experiencia real.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 8. CHANGELOG -->
+<section id="changelog" class="reveal">
+  <h2>Changelog v4.1.1 a v4.2.2</h2>
+  <div class="diff">
+    <div class="diff-col old">
+      <h4>v4.1.1 (antes)</h4>
+      <div class="diff-row"><span>Ventana lectura</span><span class="val">100 lineas</span></div>
+      <div class="diff-row"><span>Patrones</span><span class="val">1 (error-fix)</span></div>
+      <div class="diff-row"><span>Propuestas</span><span class="val">Genericas (fix-bash)</span></div>
+      <div class="diff-row"><span>Tracking</span><span class="val">Log texto plano</span></div>
+      <div class="diff-row"><span>Auto-promote</span><span class="val">No existe</span></div>
+      <div class="diff-row"><span>Linting</span><span class="val">No existe</span></div>
+      <div class="diff-row"><span>/eod</span><span class="val">Solo proyecto actual</span></div>
+      <div class="diff-row"><span>Tests</span><span class="val">0</span></div>
+    </div>
+    <div class="diff-col new">
+      <h4>v4.2.2 (ahora)</h4>
+      <div class="diff-row"><span>Ventana lectura</span><span class="val">1000 lineas</span></div>
+      <div class="diff-row"><span>Patrones</span><span class="val">3 (error-fix, corrections, workflows)</span></div>
+      <div class="diff-row"><span>Propuestas</span><span class="val">Con contexto (project, samples)</span></div>
+      <div class="diff-row"><span>Tracking</span><span class="val">JSON atomico (occurrences)</span></div>
+      <div class="diff-row"><span>Auto-promote</span><span class="val">draft a confirmed (5+)</span></div>
+      <div class="diff-row"><span>Linting</span><span class="val">Diario (scheduled task)</span></div>
+      <div class="diff-row"><span>/eod</span><span class="val">Multi-proyecto (_eod-gather.sh)</span></div>
+      <div class="diff-row"><span>Tests</span><span class="val">78 (21 unit + 12 TDD + 25 E2E + 20 seg)</span></div>
+      <div class="diff-row"><span>Domain dedup</span><span class="val">Occurrences tiebreaker</span></div>
+      <div class="diff-row"><span>Pre-filtro</span><span class="val">Por stack del proyecto (context.md)</span></div>
+      <div class="diff-row"><span>err_msg</span><span class="val">Error extraido (max 500 chars)</span></div>
+      <div class="diff-row"><span>Watchdog</span><span class="val">is_critical (FATAL/OOM/segfault)</span></div>
+      <div class="diff-row"><span>Bugfix</span><span class="val">projectName scope (proposals)</span></div>
+    </div>
+  </div>
+  <p style="font-size:12px;color:var(--dim);margin-top:12px">v4.2.1: occurrences tiebreaker, domain pre-filter, err_msg y is_critical watchdog inspirados en <a href="https://github.com/fermonterom/fs-cortex" style="color:var(--copper)">fs-cortex</a> de Fernando Montero.</p>
+  <p style="font-size:12px;color:var(--dim);margin-top:4px">v4.2.2: /eod multi-proyecto, _eod-gather.sh, bugfix projectName scope (descubierto por E2E), /session-end en installer, 78 tests totales.</p>
+</section>
+
+<!-- 9. FAQ -->
+<section id="faq" class="reveal">
+  <h2>Preguntas frecuentes</h2>
+  <div class="faq-item">
+    <div class="faq-q">Cuantos tokens consume?</div>
+    <div class="faq-a">Zero en hooks (observe, activator, session-learner son Node.js/Python, no LLM). Solo consume tokens al ejecutar /analyze-observations o /evolve.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">Funciona con otros agentes ademas de Claude Code?</div>
+    <div class="faq-a">Actualmente solo Claude Code (los hooks son especificos de settings.json). La arquitectura es portable, pero requiere adaptacion de hooks para otros agentes.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">Puedo anadir instincts manualmente?</div>
+    <div class="faq-a">Si. Edita _instincts-index.json directamente. Anade un objeto con id, trigger_pattern (regex), inject (texto), level, scope, domain. El activator lo usara en la siguiente sesion.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">Que pasa si borro observations.jsonl?</div>
+    <div class="faq-a">Se crea uno nuevo automaticamente. Pierdes el historico de ese proyecto, pero los instincts ya generados se mantienen en el indice.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">Como hago backup?</div>
+    <div class="faq-a">El installer ofrece backup automatico al actualizar. Manualmente: copia _instincts-index.json, _session-learner.sh, _instinct-activator.sh a una carpeta segura. Usa /instinct-export para exportar instincts a YAML.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">Es seguro hacer publico el repo?</div>
+    <div class="faq-a">Si, siempre que no commits _operator-state.json, _passive-rules.json ni _instincts-index.json. Estos contienen datos de negocio personales. El .gitignore los excluye automaticamente.</div>
+  </div>
+</section>
+
+</main>
+
+<script>
+// IntersectionObserver for reveal animations
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); }});
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// Active nav link
+const sections = document.querySelectorAll('section[id]');
+const navLinks = document.querySelectorAll('nav a');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => { if (window.scrollY >= s.offsetTop - 100) current = s.id; });
+  navLinks.forEach(a => { a.classList.toggle('active', a.getAttribute('href') === '#' + current); });
+});
+</script>
+</body>
+</html>
