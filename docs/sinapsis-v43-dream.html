@@ -90,7 +90,7 @@
   .sidebar nav a:hover,
   .sidebar nav a.active {
     color: #fff;
-    background: rgba(233, 69, 96, 0.08);
+    background: rgba(196, 149, 106, 0.08);
     border-left-color: var(--highlight);
   }
 
@@ -152,7 +152,7 @@
   h3 {
     font-size: 1.15rem;
     font-weight: 600;
-    color: var(--accent);
+    color: var(--highlight);
     margin: 28px 0 10px;
   }
 
@@ -288,8 +288,8 @@
   }
 
   .info-box.warn {
-    background: rgba(233, 69, 96, 0.06);
-    border-color: rgba(233, 69, 96, 0.2);
+    background: rgba(196, 149, 106, 0.06);
+    border-color: rgba(196, 149, 106, 0.2);
   }
 
   /* ── Formula ── */
@@ -395,16 +395,45 @@
 
   <div class="main-body">
 
-    <!-- ══ Que es ══ -->
-    <h2 id="que-es">Que es el Dream Cycle</h2>
+    <!-- ══ De donde viene ══ -->
+    <h2 id="que-es">De donde viene: AutoDream vs Sinapsis</h2>
     <p>
-      El Dream Cycle es un proceso de mantenimiento autonomo para el indice de instincts de Sinapsis.
-      Ejecuta un analisis completo del fichero <code>_instincts-index.json</code> sin consumir un solo
-      token de LLM: todo es <strong>Node.js determinista</strong>.
+      En abril de 2026, Anthropic publico (detras de un feature flag experimental) <strong>AutoDream</strong>:
+      un sub-agente de consolidacion de memoria que se ejecuta en idle time. Su funcion es limpiar los ficheros
+      de memoria de Claude Code &mdash; fusionar duplicados, resolver contradicciones, normalizar fechas
+      y podar entradas obsoletas. Un ciclo de 4 fases que imita la consolidacion de memoria durante el sueno.
     </p>
     <p>
-      Se inspira en el concepto de AutoDream de Anthropic: un ciclo de "sueno" donde el sistema revisa
-      su propia memoria, identifica problemas y aplica correcciones conservadoras de forma autonoma.
+      Sinapsis v4.2 ya tenia un pipeline de aprendizaje superior en varios aspectos:
+      instincts tipados con trigger patterns, 3 niveles de confianza, auto-promote por ocurrencias,
+      deduplicacion por dominio y filtrado por stack de proyecto. Pero le faltaba algo que AutoDream si tenia:
+      <strong>higiene del indice</strong>. Con el tiempo, los instincts se acumulan sin consolidacion.
+    </p>
+
+    <div class="info-box">
+      <strong>Lo que tomamos de AutoDream:</strong>
+      <ul>
+        <li>Consolidacion periodica &mdash; revisar el indice para detectar duplicados y contradicciones</li>
+        <li>Staleness scoring &mdash; identificar instincts que nunca se activan o llevan meses sin dispararse</li>
+        <li>Auto-archivo conservador &mdash; solo actuar automaticamente en borradores inactivos de 90+ dias</li>
+        <li>Health Score &mdash; una metrica unica que resume la salud del sistema</li>
+      </ul>
+    </div>
+
+    <div class="info-box warn">
+      <strong>Lo que NO copiamos de AutoDream:</strong>
+      <ul>
+        <li>AutoDream usa LLM para consolidar &mdash; nosotros somos 100% deterministas (0 tokens)</li>
+        <li>AutoDream opera sobre markdown plano &mdash; nosotros sobre JSON tipado con trigger patterns</li>
+        <li>AutoDream tiene un limite de 200 lineas &mdash; nuestro activator filtra por dominio/proyecto en runtime, sin limite artificial</li>
+      </ul>
+    </div>
+
+    <h2>Que es el Dream Cycle</h2>
+    <p>
+      El Dream Cycle es el resultado de esa fusion: un proceso de mantenimiento autonomo para el indice de instincts
+      que ejecuta un analisis completo del fichero <code>_instincts-index.json</code> sin consumir un solo
+      token de LLM. Todo es <strong>Node.js determinista</strong>, igual que el resto de hooks de Sinapsis.
     </p>
 
     <div class="info-box">
