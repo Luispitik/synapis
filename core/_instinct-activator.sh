@@ -1,9 +1,11 @@
 #!/bin/bash
-# Instinct Activator - Sinapsis v4.2.1
+# Instinct Activator - Sinapsis v4.4
 # Reads tool data from stdin, matches against learned instincts, outputs systemMessage
 # v4.2: occurrence tracking + auto-promote draft→confirmed at 5+ matches
 # v4.2.1: occurrences tiebreaker in domain dedup + domain pre-filter by project stack
 #         (inspired by fs-cortex project-scoped instincts — credit: Fernando Montero)
+# v4.4: confidence decay — confirmed(60d inactive)→draft, draft(90d inactive)→archived
+#       (inspired by gstack learnings confidence decay — credit: garrytan/gstack)
 
 INDEX_FILE="$HOME/.claude/skills/_instincts-index.json"
 LOG_FILE="$HOME/.claude/skills/_instinct.log"
@@ -35,6 +37,29 @@ process.stdin.on("end", () => {
   } catch(e) { process.exit(0); }
 
   const instincts = index.instincts || [];
+
+  // v4.4: Confidence decay — demote stale instincts (inspired by gstack learnings decay)
+  // confirmed without activation in 60d → draft, draft without activation in 90d → archived
+  const DECAY_CONFIRMED_DAYS = 60;
+  const DECAY_DRAFT_DAYS = 90;
+  const DAY_MS = 86400000;
+  const nowMs = Date.now();
+  let decayDirty = false;
+  for (const inst of instincts) {
+    if (inst.level === "permanent") continue; // permanent never decays
+    const lastTs = inst.last_triggered ? new Date(inst.last_triggered).getTime() : (inst.first_triggered ? new Date(inst.first_triggered).getTime() : 0);
+    if (!lastTs) continue; // no activation data yet, skip
+    const daysInactive = Math.floor((nowMs - lastTs) / DAY_MS);
+    if (inst.level === "confirmed" && daysInactive > DECAY_CONFIRMED_DAYS) {
+      inst.level = "draft";
+      inst._decayed = true;
+      decayDirty = true;
+    } else if (inst.level === "draft" && daysInactive > DECAY_DRAFT_DAYS) {
+      inst.level = "archived";
+      inst._decayed = true;
+      decayDirty = true;
+    }
+  }
 
   // v4.2.1: domain pre-filter by project stack (inspired by fs-cortex project-scoped instincts)
   // Reads context.md to detect project tech, skips irrelevant domains. Reduces regex evals.
@@ -145,13 +170,15 @@ process.stdin.on("end", () => {
         promoted.push(inst.id);
       }
     }
-    if (dirty) {
+    if (dirty || decayDirty) {
       const indexPath = process.env.HOME + "/.claude/skills/_instincts-index.json";
       // v4.3.1: skip write if dream cycle holds the lock (#6 race condition)
       const dreamLock = process.env.HOME + "/.claude/skills/_dream.lock";
       if (fs.existsSync(dreamLock)) {
         // Dream cycle is running — skip write to avoid data loss
       } else {
+        // v4.4: filter out archived instincts from index (they stay in log only)
+        index.instincts = index.instincts.filter(i => i.level !== "archived");
         const tmpPath = indexPath + ".tmp";
         fs.writeFileSync(tmpPath, JSON.stringify(index, null, 2));
         fs.renameSync(tmpPath, indexPath);
@@ -163,8 +190,11 @@ process.stdin.on("end", () => {
   try {
     const ids = top.map(m => m.id).join(",");
     const promoMsg = promoted.length > 0 ? " | PROMOTED:" + promoted.join(",") : "";
+    // v4.4: log decayed instincts
+    const decayed = instincts.filter(i => i._decayed).map(i => i.id + "(" + i.level + ")");
+    const decayMsg = decayed.length > 0 ? " | DECAYED:" + decayed.join(",") : "";
     fs.appendFileSync(process.env.HOME + "/.claude/skills/_instinct.log",
-      now + " | " + toolName + " | " + ids + promoMsg + "\n");
+      now + " | " + toolName + " | " + ids + promoMsg + decayMsg + "\n");
   } catch(e) {}
 });
 ' 2>/dev/null
