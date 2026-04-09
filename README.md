@@ -1,4 +1,4 @@
-# Sinapsis v4.3.1
+# Sinapsis v4.4
 
 ### The skill system for Claude Code that learns and adapts to you.
 
@@ -23,24 +23,46 @@ Think of it as going from a dumb terminal to an assistant that actually knows yo
 
 ---
 
-## What's New in v4.3
+## What's New in v4.4 — GStack Integration
 
-### Dream Cycle (`/dream`)
+v4.4 integrates concepts from [garrytan/gstack](https://github.com/garrytan/gstack) (23 YC engineering skills) into Sinapsis. Three new skills, session timeline infrastructure, and cross-project instinct search.
 
-v4.3 introduces the **Dream Cycle** -- a 5-module index hygiene system inspired by Anthropic's AutoDream. Run `/dream` to analyze your instinct index for duplicates, contradictions, stale entries, invalid triggers, and overall health. The cycle produces a scored report (0-100) and offers interactive merge/archive actions. Drafts with 0 occurrences and >90 days old are auto-archived to a new `archived` array in `_instincts-index.json` (non-destructive -- recoverable anytime).
+### 3 New Skills
 
-The 5 modules: (1) Duplicate detection via Jaccard word tokens, (2) Contradiction detection with 7 opposing keyword pairs in EN+ES, (3) Staleness scoring, (4) Trigger pattern validation, (5) Index health metrics. Lock file prevents concurrent runs. 40 new tests (25 TDD + 15 E2E), bringing the total from 78 to 118.
+| Skill | What it does |
+|-------|-------------|
+| **`/review-army`** | 5 parallel specialist code review (security, Next.js, Supabase, performance, testing). Fix-First workflow: auto-fix mechanical issues, ASK on critical. PR Quality Score 0-10. |
+| **`/cso-audit`** | OWASP Top 10 + STRIDE + supply chain + LLM security audit. Daily mode (8/10 confidence gate, zero-noise) and comprehensive mode (2/10 gate, deep scan). |
+| **`/investigate-pro`** | 4-phase systematic debugging: investigate → analyze → hypothesize → implement. Iron Law: no fix without confirmed root cause. Scope freeze prevents scope creep. |
 
-### Previous: v4.2
+### Infrastructure
 
 | Feature | Description |
 |---------|-------------|
-| **3 pattern detectors** | error-fix, user-corrections, workflow-chains. Session-learner now catches 3x more patterns. |
-| **Occurrence tracking** | Each instinct match increments counters. Auto-promote draft→confirmed at 5+ matches. |
-| **Multi-project /eod** | `_eod-gather.sh` scans ALL projects worked today, not just the current one. |
-| **Domain pre-filter** | Reads project stack from `context.md`, skips irrelevant instincts before regex matching. |
-| **Occurrences tiebreaker** | Same domain + same level? Higher occurrences wins in dedup. |
-| **118 tests** | 21 unit + 12 TDD + 25 E2E + 20 security + 40 dream. |
+| **Confidence decay** | Instincts that stop being useful fade: confirmed (60d inactive) → draft, draft (90d) → archived. Permanent never decays. |
+| **Session timeline** | JSONL event log (`_session-timeline.jsonl`) tracks every skill invocation. Powers `/retro-semanal` and `/eod`. |
+| **Cross-project search** | `/instinct-status --cross-project "query"` searches instincts across all registered projects without promoting. |
+| **`/retro-semanal`** | Weekly retrospective: commits per project, skills used, instincts activated, health score trend. |
+
+### Previous versions
+
+<details>
+<summary>v4.3 — Dream Cycle</summary>
+
+5-module index hygiene system inspired by Anthropic's AutoDream. Duplicate detection, contradiction detection, staleness scoring, trigger validation, health metrics. 40 new tests.
+</details>
+
+<details>
+<summary>v4.2 — Occurrence Tracking + Multi-project EOD</summary>
+
+3 pattern detectors (error-fix, user-corrections, workflow-chains). Occurrence tracking with auto-promote at 5+ matches. Domain pre-filter by project stack. Multi-project `/eod`.
+</details>
+
+<details>
+<summary>v4.1 — Closed Learning Pipeline</summary>
+
+End-to-end observe → learn → inject pipeline. 3-level confidence model (draft/confirmed/permanent). Domain deduplication. Project context bridge.
+</details>
 
 See [CHANGELOG.md](CHANGELOG.md) for full details.
 
@@ -285,13 +307,16 @@ See `core/settings.template.json` for the exact configuration.
 | `/system-status` | Full dashboard: skills, tokens, projects, health |
 | `/evolve` | Analyze mature instincts, create skills/rules/commands |
 | `/analyze-session` | Review proposals from session-learner, accept/reject |
-| `/clone` | Clone a project as base for a new one |
 | `/passive-status` | Which passive rules fire, which never triggered |
-| `/instinct-status` | All learned patterns with levels |
+| `/instinct-status` | All learned patterns with levels + `--cross-project` search |
 | `/promote` | Move instinct from project scope to global |
 | `/projects` | List all known projects with stats |
 | `/eod` | Save work context for tomorrow's session |
 | `/dream` | Run dream cycle: index hygiene with 5-module analysis |
+| `/retro-semanal` | Weekly retrospective: commits, skills, instincts, health score |
+| `/review-army` | 5-specialist parallel code review with Fix-First |
+| `/cso-audit` | OWASP + STRIDE + supply chain + LLM security audit |
+| `/investigate-pro` | 4-phase systematic debugging with Iron Law |
 
 ### Session Continuity (`/eod`)
 
@@ -324,13 +349,17 @@ Use `/eod --quick` for a fast auto-generated summary, or `/eod --yesterday` to r
     _instinct-activator.sh     <-- Hook: injects matched instincts
     _instincts-index.json      <-- Instinct registry
     _instinct-proposals.json   <-- Draft proposals from session-learner
+    _session-timeline.jsonl    <-- NEW v4.4: Skill usage event log
+    _timeline-log.sh           <-- NEW v4.4: Helper to append timeline events
     _project-context.sh        <-- Hook: injects project context (once/session)
     _session-learner.sh        <-- Stop hook: writes context + detects patterns
     _dream.sh                  <-- Dream cycle: 5-module index hygiene
-    _dream-report.md           <-- Last dream cycle report
     _operator-state.json       <-- Your identity + decisions (cross-project)
     _projects.json             <-- Project registry
-  commands/                    <-- Slash commands (/evolve, /clone, etc.)
+    review-army/               <-- NEW v4.4: 5-specialist code review
+    cso-audit/                 <-- NEW v4.4: OWASP+STRIDE security audit
+    investigate-pro/           <-- NEW v4.4: 4-phase systematic debugging
+  commands/                    <-- Slash commands (/evolve, /retro-semanal, etc.)
   homunculus/
     projects/{hash}/
       observations.jsonl       <-- Raw tool observations (local only)
