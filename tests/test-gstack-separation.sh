@@ -73,8 +73,11 @@ else
 fi
 
 # Check that README doesn't mention review-army, cso-audit, investigate-pro as current features
+# Exclude <details> blocks (historical changelog summaries) from the check
 GSTACK_README=$(grep -Ec "review-army|cso-audit|investigate-pro|/retro-semanal" "$SCRIPT_DIR/README.md" 2>/dev/null | xargs)
-if [ "${GSTACK_README:-0}" -eq 0 ] 2>/dev/null; then
+GSTACK_IN_DETAILS=$(sed -n '/<details>/,/<\/details>/p' "$SCRIPT_DIR/README.md" 2>/dev/null | grep -Ec "review-army|cso-audit|investigate-pro|/retro-semanal" 2>/dev/null | xargs)
+GSTACK_ACTIVE=$((${GSTACK_README:-0} - ${GSTACK_IN_DETAILS:-0}))
+if [ "${GSTACK_ACTIVE:-0}" -eq 0 ] 2>/dev/null; then
   pass "README.md has no gstack skill references"
 else
   fail "README.md still references gstack skills ($GSTACK_README occurrences)"

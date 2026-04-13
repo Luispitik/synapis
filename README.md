@@ -1,7 +1,8 @@
-# Sinapsis v4.3
+# Sinapsis v4.3.3
 
-[![Version](https://img.shields.io/badge/version-4.3-blue.svg)](https://github.com/Luispitik/sinapsis/releases/tag/v4.3)
-[![Tests](https://img.shields.io/badge/tests-52%2B%20passing-green.svg)](tests/)
+[![Version](https://img.shields.io/badge/version-4.3.3-blue.svg)](https://github.com/Luispitik/sinapsis)
+[![Tests](https://img.shields.io/badge/tests-83%20passing-green.svg)](tests/)
+[![CI](https://github.com/Luispitik/sinapsis/actions/workflows/tests.yml/badge.svg)](https://github.com/Luispitik/sinapsis/actions)
 [![License](https://img.shields.io/badge/license-Source%20Available-orange.svg)](LICENSE)
 
 ### The skill system for Claude Code that learns and adapts to you.
@@ -27,15 +28,29 @@ Think of it as going from a dumb terminal to an assistant that actually knows yo
 
 ---
 
-## What's New in v4.3 — Dream Cycle + Confidence Decay
+## What's New in v4.3.3 — Hardening + Portability
 
-### Confidence Decay
-Instincts that stop being useful fade automatically: confirmed (60d inactive) → draft, draft (90d) → archived. Permanent never decays.
+### From the Cortex v3.10 Comparison (credit: [Fernando Montero / fs-cortex](https://github.com/fermonterom/fs-cortex))
+- **`/downvote`**: demote or archive instincts that give bad advice. Closes the feedback loop.
+- **Multi-session auto-promote**: drafts need 5+ occurrences AND 3+ distinct sessions (not just 5 hits in one session).
+- **5 pattern detectors**: error-fix, corrections, workflow chains, repetitions (3+ sessions), agent patterns.
+- **8 secret scrubbing patterns**: +Stripe, Slack, SendGrid (was 5).
+- **Path traversal protection** + **token budget cap** (1500 chars/tool-use) in instinct injection.
+- **GitHub Actions CI**: tests on Ubuntu, macOS, Windows on every push.
+- **Pre-push hook**: blocks push if tests fail.
 
-### Cross-project Search
-`/instinct-status --cross-project "query"` searches instincts across all registered projects without promoting.
+### Portability
+- **`/backup [path]`**: export your full Sinapsis state to a folder. Sync via OneDrive, Dropbox, or USB.
+- **`/restore [path]`**: import on another machine with intelligent merge (by ID, keeps local data).
+- **`/cleanup`**: remove legacy files, orphan projects, old archives from homunculus.
 
 ### Previous versions
+
+<details>
+<summary>v4.3.2 — GStack Separation</summary>
+
+Engineering tools (review-army, cso-audit, investigate-pro) moved to separate repo. Sinapsis refocused on autonomous learning only. 69 tests.
+</details>
 
 <details>
 <summary>v4.3 — Dream Cycle</summary>
@@ -127,7 +142,7 @@ If you already have v3.2 installed, the installer handles the upgrade automatica
 
 ```bash
 # Pull the latest changes
-git -C sinapsis-3.2 pull origin main
+git -C sinapsis pull origin main
 
 # Run the installer again — it detects the upgrade automatically
 cd sinapsis
@@ -304,7 +319,10 @@ See `core/settings.template.json` for the exact configuration.
 | `/projects` | List all known projects with stats |
 | `/eod` | Save work context for tomorrow's session |
 | `/dream` | Run dream cycle: index hygiene with 5-module analysis |
-| `/dream` | Run dream cycle: index hygiene with 5-module analysis |
+| `/downvote` | Demote or archive instincts that give bad advice |
+| `/backup [path]` | Export full Sinapsis state for sync between machines |
+| `/restore [path]` | Import state from backup with intelligent merge |
+| `/cleanup` | Remove legacy files, orphan projects, old archives |
 
 ### Session Continuity (`/eod`)
 
@@ -407,7 +425,7 @@ Built by [Luis Salgado](https://salgadoia.com) — AI consultant, developer, and
 
 Powered by [Claude Code](https://claude.ai/code) by Anthropic.
 
-Confidence decay inspired by [garrytan/gstack](https://github.com/garrytan/gstack) (MIT License, Copyright (c) 2026 Garry Tan).
+v4.3.3 hardening inspired by [Fernando Montero / fs-cortex](https://github.com/fermonterom/fs-cortex) (Cortex v3.10 comparison analysis). Confidence decay inspired by [garrytan/gstack](https://github.com/garrytan/gstack) (MIT License). v4.3.1 audit by Fernando Montero (Fersora Solutions).
 
 ---
 
