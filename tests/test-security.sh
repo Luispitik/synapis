@@ -7,8 +7,7 @@
 # Vuln 5B — Secret scrubbing gaps
 # ============================================================
 
-set -e
-
+# No set -e — tests must report pass/fail individually, not abort on first error
 PASS=0
 FAIL=0
 TESTS=0
@@ -136,8 +135,10 @@ EOF
 # We test by measuring execution time
 START_TIME=$(date +%s%N 2>/dev/null || python3 -c "import time; print(int(time.time()*1e9))" 2>/dev/null || echo "0")
 
+# Use node's own setTimeout for cross-platform timeout (macOS has no `timeout` command)
 echo '{"tool_name":"aaaaaaaaaaaaaaaaaaaab","tool_input":{}}' | \
-  timeout 3 node -e '
+  node -e '
+    setTimeout(() => process.exit(124), 3000); // kill after 3s
     const fs = require("fs");
     const indexData = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
     const instincts = indexData.instincts || [];
@@ -145,11 +146,11 @@ echo '{"tool_name":"aaaaaaaaaaaaaaaaaaaab","tool_input":{}}' | \
     for (const inst of instincts) {
       if (!inst.trigger_pattern) continue;
       try {
-        // This is where ReDoS would happen without protection
         const re = new RegExp(inst.trigger_pattern, "i");
         re.test(context);
       } catch(e) { continue; }
     }
+    process.exit(0);
   ' "$SANDBOX/skills/_instincts-index-redos.json" 2>/dev/null
 
 EXIT_CODE=$?
