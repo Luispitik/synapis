@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- **`_session-learner.sh` line 277 — bash quoting bug (regression)**: the regex `["']?` inside `node -e '...'` closed the bash single-quoted string prematurely, causing every Stop event to crash with `syntax error near unexpected token (`. Pattern 4 (repetitions) and Pattern 5 (agent-patterns) never ran. Replaced literal `'` in the regex char class with the JS unicode escape `\u0027`. Added regression test (`bash -n` of all `core/*.sh`).
+- **`_projects.json` was never populated**: every reader (`/projects`, `/eod`, `/instinct-status`, `/evolve`, `/backup`, `_session-learner.sh`, `_eod-gather.sh`) consulted `_projects.json` or `homunculus/projects.json` but no hook ever wrote to either. The registry stayed empty forever, so `_eod-gather.sh` could not resolve `hash → name` (showed raw 12-char hashes), `/projects` was always blank, and cross-project instinct search returned nothing. `_session-learner.sh` now upserts the canonical `~/.claude/skills/_projects.json` (array schema) on every Stop event with `{id, name, root, remote, created, last_seen}`. Project name is sourced from observation `project_name` (already written by `observe.sh`) with legacy `homunculus/projects.json` fallback. Atomic write via tmp + rename. Idempotent.
+- **`_eod-gather.sh` registry path**: switched primary source to canonical `~/.claude/skills/_projects.json` (array schema) so `/eod` resolves names correctly. Legacy `homunculus/projects.json` (map schema) kept as fallback for back-compat.
+- **`_catalog.json` trailing comma**: invalid JSON. Python `json.load()` failed; Node tolerated but it is fragile. Removed the comma.
+
+### Tests
+- 3 new regression tests in `tests/test-install-upgrade.sh` (Test Group 6): bash syntax of all `core/*.sh`, `_projects.json` upsert detects `name`, idempotency on repeat run.
+
+---
+
 ## v4.3.3 (2026-04-13)
 
 ### Added — Hardening from Cortex Comparison (credit: Fernando Montero / fs-cortex v3.10)

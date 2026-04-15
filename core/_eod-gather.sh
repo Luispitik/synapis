@@ -24,10 +24,23 @@ const homunculus = HOME + "/.claude/homunculus";
 const projectsDir = path.join(homunculus, "projects");
 const today = new Date().toISOString().slice(0, 10);
 
-// Load project registry for names and roots
+// Load project registry for names and roots.
+// Primary source: canonical _projects.json (array schema, populated by _session-learner.sh).
+// Fallback: legacy homunculus/projects.json (map schema, kept for back-compat).
 let registry = {};
 try {
-  registry = JSON.parse(fs.readFileSync(path.join(homunculus, "projects.json"), "utf8"));
+  const canonical = JSON.parse(fs.readFileSync(HOME + "/.claude/skills/_projects.json", "utf8"));
+  if (canonical && Array.isArray(canonical.projects)) {
+    for (const p of canonical.projects) {
+      if (p && p.id) registry[p.id] = { name: p.name, root: p.root };
+    }
+  }
+} catch(e) {}
+try {
+  const legacy = JSON.parse(fs.readFileSync(path.join(homunculus, "projects.json"), "utf8"));
+  for (const [k, v] of Object.entries(legacy || {})) {
+    if (!registry[k]) registry[k] = v;
+  }
 } catch(e) {}
 
 const projects = [];

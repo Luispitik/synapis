@@ -53,11 +53,22 @@ const projectDir = path.dirname(obsFile);
 const projectHash = path.basename(projectDir);
 const today = new Date().toISOString().slice(0, 10);
 
-// Get project name (hoisted — used by JOB 1 and JOB 2)
+// Get project name + root + remote (hoisted — used by JOB 1, JOB 1.5 upsert and JOB 2)
+// Primary source: observations themselves (observe.sh writes project_name into each entry)
 let projectName = projectHash;
+let projectRoot = "";
+let projectRemote = "";
+try {
+  if (lines[0] && lines[0].project_name) projectName = lines[0].project_name;
+} catch(e) {}
+// Legacy fallback: homunculus/projects.json (kept for back-compat with installs that created it)
 try {
   const pj = JSON.parse(fs.readFileSync(process.env.HOME + "/.claude/homunculus/projects.json", "utf8"));
-  if (pj[projectHash] && pj[projectHash].name) projectName = pj[projectHash].name;
+  if (pj[projectHash]) {
+    if (pj[projectHash].name && projectName === projectHash) projectName = pj[projectHash].name;
+    if (pj[projectHash].root) projectRoot = pj[projectHash].root;
+    if (pj[projectHash].remote) projectRemote = pj[projectHash].remote;
+  }
 } catch(e) {}
 
 try {
@@ -107,6 +118,43 @@ try {
   fs.writeFileSync(projectDir + "/context.md", contextLines);
 } catch(e) {
   // context.md write failure is non-critical
+}
+
+// ── JOB 1.5: Upsert canonical project registry _projects.json ──
+// FIX: prior to this, _projects.json was never populated by any hook even though
+// /projects, /eod, /instinct-status, /evolve, /backup all read from it.
+// We upsert here on every Stop event — atomic write, schema-stable, idempotent.
+try {
+  const registryPath = process.env.HOME + "/.claude/skills/_projects.json";
+  let registry;
+  try {
+    registry = JSON.parse(fs.readFileSync(registryPath, "utf8"));
+  } catch(e) {
+    registry = { version: "4.1", system: "sinapsis", projects: [], note: "Projects registered automatically by _session-learner.sh on Stop events." };
+  }
+  if (!Array.isArray(registry.projects)) registry.projects = [];
+
+  const now = new Date().toISOString();
+  let entry = registry.projects.find(p => p && p.id === projectHash);
+  if (!entry) {
+    entry = { id: projectHash, name: projectName, root: projectRoot, remote: projectRemote, created: now, last_seen: now };
+    registry.projects.push(entry);
+  } else {
+    if (projectName && projectName !== projectHash) entry.name = projectName;
+    if (projectRoot) entry.root = projectRoot;
+    if (projectRemote) entry.remote = projectRemote;
+    entry.last_seen = now;
+  }
+
+  // Atomic write: tmp + rename (avoids torn writes if multiple sessions Stop concurrently)
+  const tmpPath = registryPath + ".tmp." + process.pid;
+  fs.writeFileSync(tmpPath, JSON.stringify(registry, null, 2));
+  fs.renameSync(tmpPath, registryPath);
+} catch(e) {
+  // Registry upsert failure is non-critical (logged for debugging)
+  if (process.env.SINAPSIS_DEBUG === "1") {
+    process.stderr.write("[session-learner] _projects.json upsert failed: " + e.message + "\n");
+  }
 }
 
 // ── JOB 2: Detect error-resolution patterns → proposals ──
@@ -274,7 +322,8 @@ const agentEvents = lines.filter(l =>
 for (const ae of agentEvents) {
   // Extract subagent type and result patterns from output
   const output = (ae.output || "").slice(0, 1000);
-  const agentTypeMatch = output.match(/subagent_type[=:]?\s*["']?(\w+)/i);
+  // \u0027 is single-quote: avoids closing the bash single-quoted node -e block
+  const agentTypeMatch = output.match(/subagent_type[=:]?\s*["\u0027]?(\w+)/i);
   const agentType = agentTypeMatch ? agentTypeMatch[1] : "general";
   // If agent output contains error keywords, propose a pattern
   const hasError = /\berror\b|\bfailed\b|\bexception\b/i.test(output);

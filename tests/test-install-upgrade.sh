@@ -256,6 +256,49 @@ else
   pass "--force-update overwrites data files"
 fi
 
+# ── TEST 12: Bash syntax of all core/*.sh files ──
+echo ""
+echo "[Test Group 6: Regression — bash syntax + projects-registry upsert]"
+
+SYNTAX_BAD=0
+for sh_file in "$SCRIPT_DIR/core/"*.sh; do
+  if ! bash -n "$sh_file" 2>/dev/null; then
+    fail "core/$(basename "$sh_file"): bash syntax invalid"
+    SYNTAX_BAD=$((SYNTAX_BAD + 1))
+  fi
+done
+[ "$SYNTAX_BAD" -eq 0 ] && pass "All core/*.sh have valid bash syntax (regression: node -e quoting bug)"
+
+# ── TEST 13: _session-learner.sh upserts canonical _projects.json ──
+SANDBOX="$(mktemp -d)/upsert-test"
+mkdir -p "$SANDBOX/.claude/skills" "$SANDBOX/.claude/homunculus/projects/testhash000001"
+cat > "$SANDBOX/.claude/homunculus/projects/testhash000001/observations.jsonl" << 'EOF'
+{"timestamp":"2026-04-15T22:00:00Z","event":"tool_complete","tool":"Bash","session":"s1","project_id":"testhash000001","project_name":"my-test-project","input":"{}"}
+{"timestamp":"2026-04-15T22:00:01Z","event":"tool_complete","tool":"Read","session":"s1","project_id":"testhash000001","project_name":"my-test-project","input":"{}"}
+{"timestamp":"2026-04-15T22:00:02Z","event":"tool_complete","tool":"Edit","session":"s1","project_id":"testhash000001","project_name":"my-test-project","input":"{}"}
+EOF
+cat > "$SANDBOX/.claude/skills/_projects.json" << 'EOF'
+{"version":"4.1","system":"sinapsis","projects":[]}
+EOF
+HOME="$SANDBOX" bash "$SCRIPT_DIR/core/_session-learner.sh" >/dev/null 2>&1 || true
+
+if grep -q '"name": "my-test-project"' "$SANDBOX/.claude/skills/_projects.json" 2>/dev/null; then
+  pass "_session-learner.sh upserts project entry into _projects.json"
+else
+  fail "_session-learner.sh did NOT upsert into _projects.json (bug regressed)"
+fi
+
+# Idempotency: second run should NOT duplicate
+HOME="$SANDBOX" bash "$SCRIPT_DIR/core/_session-learner.sh" >/dev/null 2>&1 || true
+COUNT=$(grep -c '"id":' "$SANDBOX/.claude/skills/_projects.json" 2>/dev/null || echo 0)
+if [ "$COUNT" -eq 1 ]; then
+  pass "_session-learner.sh upsert is idempotent (no duplicates on repeat)"
+else
+  fail "Upsert duplicated entries (got $COUNT entries, expected 1)"
+fi
+
+rm -rf "$(dirname "$SANDBOX")"
+
 # ── Results ──
 echo ""
 echo "==============================="
