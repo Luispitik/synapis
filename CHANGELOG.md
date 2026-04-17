@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- **`_session-learner.sh` line 277 — bash quoting bug (regression)**: the regex `["']?` inside `node -e '...'` closed the bash single-quoted string prematurely, causing every Stop event to crash with `syntax error near unexpected token (`. Pattern 4 (repetitions) and Pattern 5 (agent-patterns) never ran. Replaced literal `'` in the regex char class with the JS unicode escape `\u0027`. Added regression test (`bash -n` of all `core/*.sh`).
+- **`_projects.json` was never populated**: every reader (`/projects`, `/eod`, `/instinct-status`, `/evolve`, `/backup`, `_session-learner.sh`, `_eod-gather.sh`) consulted `_projects.json` or `homunculus/projects.json` but no hook ever wrote to either. The registry stayed empty forever, so `_eod-gather.sh` could not resolve `hash → name` (showed raw 12-char hashes), `/projects` was always blank, and cross-project instinct search returned nothing. `_session-learner.sh` now upserts the canonical `~/.claude/skills/_projects.json` (array schema) on every Stop event with `{id, name, root, remote, created, last_seen}`. Project name is sourced from observation `project_name` (already written by `observe.sh`) with legacy `homunculus/projects.json` fallback. Atomic write via tmp + rename. Advisory lock file (`_projects.json.lock`) with `O_EXCL` + backoff + stale detection prevents lost updates when parallel Stop hooks fire concurrently. Idempotent.
+- **`_eod-gather.sh` registry path**: switched primary source to canonical `~/.claude/skills/_projects.json` (array schema) so `/eod` resolves names correctly. Legacy `homunculus/projects.json` (map schema) kept as fallback for back-compat.
+- **`_catalog.json` trailing comma**: invalid JSON. Python `json.load()` failed; Node tolerated but it is fragile. Removed the comma.
+- **`_session-learner.sh` derives `root`/`remote` from observation `cwd`**: derive them via `git rev-parse --show-toplevel` + `git remote get-url origin` against the most recent observation `cwd`. POSIX `/c/foo` paths are normalized to `C:/foo` on Windows so native `git.exe` accepts them. Without this, `_projects.json` entries had blank `root`/`remote` even when upsert succeeded.
+- **`observe_v3.py` now writes `cwd` into every observation**: the session-learner reads `lines[i].cwd` to run `git rev-parse`, but the hook never wrote that field — so root/remote stayed empty on fresh installs. Added `cwd` to the observation dict.
+
+### Tests
+- 4 new regression tests in `tests/test-install-upgrade.sh` (Test Group 6): bash syntax of all `core/*.sh`, `_projects.json` upsert detects `name`, idempotency on repeat run, and an end-to-end TEST 14 that pipes a real payload through `observe.sh` into a real git sandbox and verifies session-learner derives `root`/`remote` from observation `cwd` via `git rev-parse`.
+
+---
+
 ## v4.4.0 (2026-04-16)
 
 ### Added — Observability Dashboard
