@@ -126,12 +126,18 @@ def collect_proposals():
 
 def collect_skills():
     cat = load_json(SKILLS / '_catalog.json', [])
-    total = len(cat)
-    stubs = sum(1 for s in cat if s.get('description', '').startswith('(auto-generated'))
+    if isinstance(cat, dict):
+        globals_list = cat.get('globalSkills', []) or []
+        library_list = cat.get('librarySkills', []) or []
+        all_skills = globals_list + library_list
+        globals_ = len(globals_list)
+    else:
+        all_skills = cat if isinstance(cat, list) else []
+        globals_ = 5
+    total = len(all_skills)
+    stubs = sum(1 for s in all_skills if isinstance(s, dict) and s.get('description', '').startswith('(auto-generated'))
     complete = total - stubs
-    # Approximate 5 globals from CLAUDE.md
-    globals_ = 5
-    return total, globals_, complete - globals_, stubs
+    return total, globals_, max(0, complete - globals_), stubs
 
 
 def collect_projects():
