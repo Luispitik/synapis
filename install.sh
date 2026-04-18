@@ -183,9 +183,13 @@ chmod +x "$SKILLS_DIR/_seed-import.py" 2>/dev/null || true
 if [ -d "$SCRIPT_DIR/seeds/instincts" ]; then
   mkdir -p "$SKILLS_DIR/_seeds/instincts"
   cp "$SCRIPT_DIR/seeds/instincts"/*.yaml "$SKILLS_DIR/_seeds/instincts/" 2>/dev/null || true
-  python "$SKILLS_DIR/_seed-import.py" \
-    --seeds-dir "$SKILLS_DIR/_seeds/instincts" \
-    --index-path "$SKILLS_DIR/_instincts-index.json" 2>&1 | sed 's/^/    /' || true
+  if [ -n "$PYTHON_CMD" ]; then
+    "$PYTHON_CMD" "$SKILLS_DIR/_seed-import.py" \
+      --seeds-dir "$SKILLS_DIR/_seeds/instincts" \
+      --index-path "$SKILLS_DIR/_instincts-index.json" 2>&1 | sed 's/^/    /' || true
+  else
+    echo -e "${YELLOW}    ! Python 3 not available — skipping seed import${NC}"
+  fi
 fi
 
 echo -e "${GREEN}  OK${NC} 5 hook scripts + dream cycle + dashboard generator + seed importer installed"

@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased — fixes to seed importer (addressing Codex review of PR #8)
+
+### Fixed
+- **`install.sh:186` — seed import used hardcoded `python` binary**: On Linux/macOS systems where only `python3` is in PATH (the common case — the installer's Step 1 explicitly accepts it), the seed import command failed and was swallowed by `|| true`. The installer reported success but **no seeds were imported into `_instincts-index.json`**. Switched to the `$PYTHON_CMD` detected in Step 1, with a fallback warning when Python is unavailable.
+- **`_seed-import.py:85` — YAML escape sequences not decoded**: The minimal YAML parser stripped surrounding quotes but did not interpret backslash escapes. Seeds with trigger patterns like `"spec\\.ts"` or `"vercel\\.json"` were stored with the literal backslashes, producing invalid regex (`spec\\.ts` matches a literal `\` followed by `.ts`, not `spec.ts`). Added `_decode_yaml_double_quoted` (handles `\\ \" \n \t \r`) and `_decode_yaml_single_quoted` (`''` → `'`). **Fixes 3 broken seeds in the shipped set**: `e2e-playwright-selectors`, `security-headers-vercel`, `supabase-rls-auth-uid`.
+- **`_seed-import.py:120` — seed domains filtered out by activator**: `_instinct-activator.sh` pre-filters by `ALWAYS_DOMAINS` (`_default`, `general`, `git`, `security`, `operations`, `quality`) plus stack-detected domains when a project has `context.md`. Seed domains `workflow-general`, `testing`, `web-development`, `saas-development` are not in either set, so `conventional-commits`, `e2e-playwright-selectors`, `nextjs-suspense-boundary`, `stripe-webhook-verify` never reached regex evaluation in normal project sessions. Added `DOMAIN_MAP` in the importer: `workflow-general → operations`, `testing → quality`, `web-development → frontend`, `saas-development → stripe`. Original domain preserved in new `original_domain` field for traceability.
+
+### Tests
+- 3 new tests in `tests/test-seeds.sh` (Tests 9-11): YAML escape decoding verified against `e2e-playwright-selectors`, domain mapping verified against `testing → quality`, install.sh usage of `$PYTHON_CMD` verified by grep.
+
+### Credit
+Bugs identified by Codex CLI (`/codex:review --base main`) during PR #9 (Laws tier) review. All 3 pre-existing in PR #8 commits.
+
+---
+
 ## v4.4.1 (2026-04-17)
 
 ### Fixed

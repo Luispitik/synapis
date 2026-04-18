@@ -102,6 +102,52 @@ if [ "$LVL_FD" = "draft" ]; then pass "supabase-rls-auth-uid forced to draft"; e
 
 teardown_sandbox
 
+# ─ Test 9: YAML escape decoding (Codex finding) ─
+# "spec\\.ts" in seed YAML must land in JSON as "spec\.ts" (regex-valid),
+# NOT "spec\\\\.ts" (literal backslash in regex — never matches).
+echo "Test 9: YAML escape decoding in trigger_pattern"
+setup_sandbox
+python "$IMPORTER" --seeds-dir "$SEEDS_NATIVE" --index-path "$INDEX_PATH" > /dev/null 2>&1
+# e2e-playwright-selectors has trigger "playwright|e2e|spec\\.ts|..."
+TRIG=$(python -c "import json; d=json.load(open(r'$INDEX_PATH')); m={i['id']:i.get('trigger_pattern','') for i in d.get('instincts',[])}; print(m.get('e2e-playwright-selectors',''))")
+# Correct decoded form should contain 'spec\.ts' (2 chars: backslash + dot literal)
+# Broken form contains 'spec\\.ts' (3 chars: two backslashes + dot)
+if echo "$TRIG" | grep -q 'spec\\\.ts' && ! echo "$TRIG" | grep -q 'spec\\\\\.ts'; then
+  pass "escape decoded: 'spec\\.ts' in trigger"
+else
+  fail "escape not decoded correctly: got '$TRIG'"
+fi
+teardown_sandbox
+
+# ─ Test 10: Domain mapping (Codex finding) ─
+# seed domain 'testing' must be translated to 'quality' (activator-recognized).
+# Also verify original_domain is preserved for traceability.
+echo "Test 10: Domain mapping (testing → quality)"
+setup_sandbox
+python "$IMPORTER" --seeds-dir "$SEEDS_NATIVE" --index-path "$INDEX_PATH" > /dev/null 2>&1
+MAPPED=$(python -c "import json; d=json.load(open(r'$INDEX_PATH')); m={i['id']:i.get('domain','') for i in d.get('instincts',[])}; print(m.get('e2e-playwright-selectors',''))")
+ORIG=$(python -c "import json; d=json.load(open(r'$INDEX_PATH')); m={i['id']:i.get('original_domain','') for i in d.get('instincts',[])}; print(m.get('e2e-playwright-selectors',''))")
+if [ "$MAPPED" = "quality" ] && [ "$ORIG" = "testing" ]; then
+  pass "testing → quality with original_domain preserved"
+else
+  fail "domain mapping broken: mapped=$MAPPED, original=$ORIG"
+fi
+teardown_sandbox
+
+# ─ Test 11: install.sh honors $PYTHON_CMD (Codex finding P1) ─
+# Ensure install.sh does NOT hardcode 'python' — it must reference $PYTHON_CMD
+# detected in Step 1. On systems with only python3 in PATH, hardcoded 'python'
+# would fail silently and no seeds would import.
+echo "Test 11: install.sh uses \$PYTHON_CMD for seed import"
+INSTALL_SH="$SCRIPT_DIR/install.sh"
+if grep -q '"\$PYTHON_CMD" "\$SKILLS_DIR/_seed-import.py"' "$INSTALL_SH"; then
+  pass "install.sh uses \$PYTHON_CMD"
+else
+  fail "install.sh does not reference \$PYTHON_CMD for seed import"
+fi
+
+TOTAL=11
+
 echo ""
 echo "────────────────────────────"
 echo "Results: $PASS/$TOTAL passed, $FAIL failed"

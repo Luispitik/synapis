@@ -32,6 +32,13 @@ Optional CLI flags:
 
 Attribution: seed format originated in fs-cortex (MIT © Fernando Montero).
 Sinapsis extends it with discrete levels via confidence thresholds.
+
+Domain mapping: `_instinct-activator.sh` pre-filters by domain when the project
+has `context.md`. Only `ALWAYS_DOMAINS` ({_default, general, git, security,
+operations, quality}) + stack-detected domains are evaluated. Seed domains
+outside that set (workflow-general, testing, web-development, saas-development)
+are translated to activator-recognized domains at import time so they match
+in the expected contexts.
 """
 from __future__ import annotations
 import argparse
@@ -56,10 +63,53 @@ def default_seeds_dir() -> Path:
     return default_skills_dir() / '_seeds' / 'instincts'
 
 
+def _decode_yaml_double_quoted(s: str) -> str:
+    """Decode escape sequences in a YAML double-quoted scalar.
+
+    Handles: \\\\ → \\, \\" → ", \\n → newline, \\t → tab, \\r → CR.
+    Unknown escapes pass through unchanged (safe for user-authored regex).
+    """
+    out = []
+    i = 0
+    n = len(s)
+    while i < n:
+        c = s[i]
+        if c == '\\' and i + 1 < n:
+            nxt = s[i + 1]
+            if nxt == '\\':
+                out.append('\\')
+                i += 2
+            elif nxt == '"':
+                out.append('"')
+                i += 2
+            elif nxt == 'n':
+                out.append('\n')
+                i += 2
+            elif nxt == 't':
+                out.append('\t')
+                i += 2
+            elif nxt == 'r':
+                out.append('\r')
+                i += 2
+            else:
+                out.append(c)
+                i += 1
+        else:
+            out.append(c)
+            i += 1
+    return ''.join(out)
+
+
+def _decode_yaml_single_quoted(s: str) -> str:
+    """Decode YAML single-quoted scalar: '' → '"""
+    return s.replace("''", "'")
+
+
 def parse_yaml_simple(text: str) -> dict:
     """
     Minimal YAML parser for seed format (flat scalar key: value).
-    Handles single-/double-quoted strings. Ignores nested lists (tags, evidence).
+    Handles single-/double-quoted strings with escape decoding. Ignores nested
+    lists (tags, evidence).
     """
     result = {}
     in_frontmatter = False
@@ -83,11 +133,28 @@ def parse_yaml_simple(text: str) -> dict:
         key = key.strip()
         value = value.strip()
         if value.startswith('"') and value.endswith('"'):
-            value = value[1:-1]
+            value = _decode_yaml_double_quoted(value[1:-1])
         elif value.startswith("'") and value.endswith("'"):
-            value = value[1:-1]
+            value = _decode_yaml_single_quoted(value[1:-1])
         result[key] = value
     return result
+
+
+# Domain translation table: seed domain → activator-recognized domain.
+# Only applied when seed.domain is in this map. Other domains pass through.
+# Rationale: _instinct-activator.sh pre-filters by domain when project context.md
+# exists. Unknown domains get silently skipped before regex evaluation. This
+# table ensures seed instincts are evaluated in the expected contexts.
+DOMAIN_MAP = {
+    'workflow-general': 'operations',
+    'testing': 'quality',
+    'web-development': 'frontend',
+    'saas-development': 'stripe',
+}
+
+
+def map_domain(domain: str) -> str:
+    return DOMAIN_MAP.get(domain, domain)
 
 
 def confidence_to_level(conf_str: str) -> str:
@@ -115,9 +182,11 @@ def iso_from_date(d: str) -> str:
 def map_seed_to_instinct(seed: dict) -> dict:
     source = seed.get('source', 'seed')
     origin = source if source.startswith('seed') else f'seed:{source}'
-    return {
+    raw_domain = seed.get('domain', 'general')
+    mapped_domain = map_domain(raw_domain)
+    instinct = {
         'id': seed['id'],
-        'domain': seed.get('domain', 'general'),
+        'domain': mapped_domain,
         'level': confidence_to_level(seed.get('confidence', '0.5')),
         'trigger_pattern': seed.get('trigger', ''),
         'inject': seed.get('action', ''),
@@ -128,6 +197,9 @@ def map_seed_to_instinct(seed: dict) -> dict:
         'first_triggered': iso_from_date(seed.get('first_seen', '')),
         'sessions_seen': [],
     }
+    if mapped_domain != raw_domain:
+        instinct['original_domain'] = raw_domain
+    return instinct
 
 
 def parse_id_list(value: str) -> set[str]:
