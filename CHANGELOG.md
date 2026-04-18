@@ -1,5 +1,32 @@
 # Changelog
 
+## v4.5.0 (2026-04-18) — unreleased
+
+### Added — Reflexes tier (inspired by fs-cortex, credit: Fernando Montero / MIT)
+- **`seeds/reflexes.json`** (5 new passive rules): `read-before-edit`, `test-after-change`, `git-push-safety`, `git-merge-verify`, `instinct-downvote`. All carry `origin: seed:fermontero-fs-cortex` for traceability. Ported from `fs-cortex/core/reflexes.default.json` after deduping against Sinapsis's existing 6 rules.
+- **`core/_reflex-merge.mjs`** (new, 90 LOC Node.js): merges seed reflexes into the user's `~/.claude/skills/_passive-rules.json`. Idempotent. **User customizations win** — rules with an existing id are preserved (no overwrite). CLI flags: `--seeds-path`, `--index-path`, `--dry-run`. Atomic write (tmp → rename). Recomputes `totalTokens`.
+- **10 TDD tests** (`tests/test-reflexes.sh`): presence, seed structure, fresh merge, idempotency, user preservation, conflict resolution, token recomputation, activator integration (`read-before-edit` fires on Edit, `git-push-safety` on `git push`), `--dry-run`. 10/10 GREEN.
+
+### Changed
+- `install.sh`: new Step 5c runs the reflex merger after copying hook scripts. Safe on upgrade — preserves user-customized rules.
+- `install.bat`: mirrors Step 5c so Windows installs get the merger too (Codex review: P1).
+- `_reflex-merge.mjs`: atomic write preserves existing file mode (0600 on upgraded installs, falls back to explicit 0600 on fresh install) to avoid relaxing `_passive-rules.json` to 0644 via the user's umask (Codex review: P2).
+- `seeds/reflexes.json`: `test-after-change` trigger scoped to `^(Edit|Write)\s.*(...)` so it does not fire on Read/Grep and waste passive-rule slots on non-mutating tools (Codex review: P2).
+
+### Skipped from fs-cortex (already covered)
+- `env-never-commit`, `git-commit-quality`, `api-auth-check` (→ `api-auth-reminder`), `security-headers` (→ `security-headers-check`), `capture-decision` (→ `decision-capture`). Sinapsis equivalents kept as-is.
+
+### Adapted
+- `instinct-downvote`: fs-cortex references its own `/cx-downvote`; Sinapsis version uses the native `/downvote` command.
+
+### Rationale
+Sinapsis shipped 6 passive rules focused on security and workflow; fs-cortex shipped 10 reflexes with broader coverage (read-before-edit discipline, test-after-change reminders, git push/merge safety). Porting the 5 non-duplicate ones gives Sinapsis users a fuller baseline without replacing their customizations. Merge pattern matches the seeds importer (Ola 1) — additive, idempotent, user-first.
+
+### Test badge
+116 → 127 passing (suite-wide, 8 test files; +11 reflex tests including a regression guard for the Read/Grep scope fix).
+
+---
+
 ## v4.4.1 (2026-04-17)
 
 ### Fixed

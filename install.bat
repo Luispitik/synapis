@@ -150,8 +150,14 @@ copy /Y "%SCRIPT_DIR%core\_session-learner.sh" "%SKILLS_DIR%\_session-learner.sh
 copy /Y "%SCRIPT_DIR%core\_project-context.sh" "%SKILLS_DIR%\_project-context.sh" >nul
 copy /Y "%SCRIPT_DIR%core\_eod-gather.sh" "%SKILLS_DIR%\_eod-gather.sh" >nul
 copy /Y "%SCRIPT_DIR%core\_dream.sh" "%SKILLS_DIR%\_dream.sh" >nul
+copy /Y "%SCRIPT_DIR%core\_reflex-merge.mjs" "%SKILLS_DIR%\_reflex-merge.mjs" >nul
 
-echo   OK 5 hook scripts + dream cycle installed
+:: Step 5c: Merge seed reflexes (v4.5) — idempotent, preserves user customizations
+if exist "%SCRIPT_DIR%seeds\reflexes.json" (
+    node "%SKILLS_DIR%\_reflex-merge.mjs" --seeds-path "%SCRIPT_DIR%seeds\reflexes.json" --index-path "%SKILLS_DIR%\_passive-rules.json" 2>&1
+)
+
+echo   OK 5 hook scripts + dream cycle + reflex merger installed
 echo   NOTE: On Windows, hooks run via Git Bash or WSL. See README for details.
 
 :: Step 6: Configure settings.json

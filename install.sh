@@ -166,6 +166,7 @@ cp "$SCRIPT_DIR/core/_eod-gather.sh" "$SKILLS_DIR/_eod-gather.sh"
 cp "$SCRIPT_DIR/core/_dream.sh" "$SKILLS_DIR/_dream.sh"
 cp "$SCRIPT_DIR/core/_generate-dashboard.py" "$SKILLS_DIR/_generate-dashboard.py"
 cp "$SCRIPT_DIR/core/_dashboard-template.html" "$SKILLS_DIR/_dashboard-template.html"
+cp "$SCRIPT_DIR/core/_reflex-merge.mjs" "$SKILLS_DIR/_reflex-merge.mjs"
 
 chmod +x "$SKILLS_DIR/_passive-activator.sh"
 chmod +x "$SKILLS_DIR/_instinct-activator.sh"
@@ -175,7 +176,16 @@ chmod +x "$SKILLS_DIR/_eod-gather.sh"
 chmod +x "$SKILLS_DIR/_dream.sh"
 chmod +x "$SKILLS_DIR/_generate-dashboard.py" 2>/dev/null || true
 
-echo -e "${GREEN}  OK${NC} 5 hook scripts + dream cycle + dashboard generator installed"
+# ── Step 5c: Merge seed reflexes (v4.5) ──
+# Merge shipped passive rules (seeds/reflexes.json) into user's _passive-rules.json.
+# Idempotent — rules with existing IDs are preserved (user customizations win).
+if [ -f "$SCRIPT_DIR/seeds/reflexes.json" ]; then
+  node "$SKILLS_DIR/_reflex-merge.mjs" \
+    --seeds-path "$SCRIPT_DIR/seeds/reflexes.json" \
+    --index-path "$SKILLS_DIR/_passive-rules.json" 2>&1 | sed 's/^/    /' || true
+fi
+
+echo -e "${GREEN}  OK${NC} 5 hook scripts + dream cycle + dashboard generator + reflex merger installed"
 
 # ── Step 5b: Legacy file cleanup (v4.3.3) ──
 LEGACY_CLEANED=0

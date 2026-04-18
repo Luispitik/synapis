@@ -1,8 +1,8 @@
-# Sinapsis v4.3.3 — Feature Reference
+# Sinapsis v4.5 — Feature Reference
 
 > Complete inventory of all features, commands, hooks, modules, and capabilities.
 > **Update this file with every feat/fix commit.**
-> Last updated: 2026-04-13
+> Last updated: 2026-04-18
 
 ---
 
@@ -23,7 +23,7 @@ OBSERVATIONS  →  PROPOSALS  →  INSTINCTS (JSON)
 ```
 
 Parallel systems (not part of the confidence pipeline):
-- **Passive Rules** (6 default) — deterministic regex rules, always fire on matcher
+- **Passive Rules** (11 default: 6 original + 5 fs-cortex seed reflexes) — deterministic regex rules, always fire on matcher
 - **Operator State** — strategic decisions persisted across all projects
 - **Skill Router** — on-demand skill loading from dormant catalog
 

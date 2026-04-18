@@ -1,0 +1,52 @@
+{
+  "_comment": "Seed passive rules (reflexes). Ported from fs-cortex (MIT © Fernando Montero). Merged into ~/.claude/skills/_passive-rules.json by install.sh Step 5d. Idempotent — existing rules preserved.",
+  "_credit": "Fernando Montero / fs-cortex (https://github.com/fermonterom/fs-cortex)",
+  "_license": "MIT",
+  "rules": [
+    {
+      "id": "read-before-edit",
+      "trigger": "^(Edit|Write)\\s",
+      "inject": "Before editing: verify the file was Read recently. If not, Read it first to avoid blind edits.",
+      "severity": "high",
+      "category": "quality",
+      "tokens": 25,
+      "origin": "seed:fermontero-fs-cortex"
+    },
+    {
+      "id": "test-after-change",
+      "trigger": "^(Edit|Write)\\s.*(\\.test\\.|\\.spec\\.|route\\.ts|\\.component\\.)",
+      "inject": "Code modified. Consider running tests (unit + e2e) to catch regressions.",
+      "severity": "medium",
+      "category": "quality",
+      "tokens": 20,
+      "origin": "seed:fermontero-fs-cortex"
+    },
+    {
+      "id": "git-push-safety",
+      "trigger": "git push|gh pr create",
+      "inject": "Before pushing: fetch + rebase first. For force pushes use --force-with-lease (never --force).",
+      "severity": "high",
+      "category": "git",
+      "tokens": 25,
+      "origin": "seed:fermontero-fs-cortex"
+    },
+    {
+      "id": "git-merge-verify",
+      "trigger": "gh pr merge|git merge ",
+      "inject": "Before merging: verify all CI checks pass. Clean up local branch after merge.",
+      "severity": "high",
+      "category": "git",
+      "tokens": 20,
+      "origin": "seed:fermontero-fs-cortex"
+    },
+    {
+      "id": "instinct-downvote",
+      "trigger": "/downvote|wrong instinct|ignore instinct|bad instinct|instinct incorrecto",
+      "inject": "Negative instinct feedback detected. Use /downvote <id> to reduce confidence or archive.",
+      "severity": "low",
+      "category": "learning",
+      "tokens": 25,
+      "origin": "seed:fermontero-fs-cortex"
+    }
+  ]
+}
