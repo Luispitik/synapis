@@ -1,0 +1,21 @@
+# ─────────────────────────────────────────────────────────────────
+# Source: https://github.com/fermonterom/fs-cortex
+# License: MIT © 2026 Fernando Montero
+# Imported to Sinapsis on: 2026-04-18
+# ─────────────────────────────────────────────────────────────────
+
+---
+id: stripe-webhook-verify
+trigger: "stripe|webhook|payment|subscription|checkout"
+action: "Always verify Stripe webhook signatures with constructEvent(). Use raw body (not parsed JSON). Store webhook secret in env var STRIPE_WEBHOOK_SECRET, never hardcode."
+confidence: 0.80
+domain: saas-development
+tags: [stripe, webhooks, payments, security]
+scope: global
+source: manual-seed
+first_seen: "2026-04-04"
+last_seen: "2026-04-04"
+occurrences: 1
+evidence:
+  - "2026-04-04: Seeded from Stripe integration best practices"
+---

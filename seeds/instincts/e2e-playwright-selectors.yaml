@@ -1,0 +1,21 @@
+# ─────────────────────────────────────────────────────────────────
+# Source: https://github.com/fermonterom/fs-cortex
+# License: MIT © 2026 Fernando Montero
+# Imported to Sinapsis on: 2026-04-18
+# ─────────────────────────────────────────────────────────────────
+
+---
+id: e2e-playwright-selectors
+trigger: "playwright|e2e|spec\\.ts|getByRole|getByText|locator"
+action: "Use accessible selectors: getByRole > getByText > getByTestId > CSS selectors. Always await expect() assertions. Use web-first assertions (toBeVisible, toHaveText) not manual waits."
+confidence: 0.75
+domain: testing
+tags: [playwright, e2e, testing, selectors]
+scope: global
+source: manual-seed
+first_seen: "2026-04-04"
+last_seen: "2026-04-04"
+occurrences: 1
+evidence:
+  - "2026-04-04: Seeded from Playwright testing best practices"
+---

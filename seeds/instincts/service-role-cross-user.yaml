@@ -1,0 +1,21 @@
+# ─────────────────────────────────────────────────────────────────
+# Source: https://github.com/fermonterom/fs-cortex
+# License: MIT © 2026 Fernando Montero
+# Imported to Sinapsis on: 2026-04-18
+# ─────────────────────────────────────────────────────────────────
+
+---
+id: service-role-cross-user
+trigger: "serviceRole|service_role|admin|cross.user|all.users"
+action: "For admin/cross-user queries use createServiceRoleClient() (bypasses RLS). Never expose SERVICE_ROLE_KEY in NEXT_PUBLIC_* env vars. Always validate admin role server-side before using service role."
+confidence: 0.85
+domain: security
+tags: [supabase, admin, service-role, security]
+scope: global
+source: manual-seed
+first_seen: "2026-04-04"
+last_seen: "2026-04-04"
+occurrences: 1
+evidence:
+  - "2026-04-04: Seeded from 3-layer security pattern (middleware → API → RLS)"
+---

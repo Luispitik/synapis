@@ -1,0 +1,21 @@
+# ─────────────────────────────────────────────────────────────────
+# Source: https://github.com/fermonterom/fs-cortex
+# License: MIT © 2026 Fernando Montero
+# Imported to Sinapsis on: 2026-04-18
+# ─────────────────────────────────────────────────────────────────
+
+---
+id: supabase-rls-auth-uid
+trigger: "rls|policy|supabase|auth\\.uid|row.level"
+action: "Verify auth.uid() in WHERE clause of every RLS policy. Test with both authenticated user and service role. Never use createClient() for cross-user queries — use createServiceRoleClient()."
+confidence: 0.85
+domain: database
+tags: [supabase, rls, security, postgres]
+scope: global
+source: manual-seed
+first_seen: "2026-04-04"
+last_seen: "2026-04-04"
+occurrences: 1
+evidence:
+  - "2026-04-04: Seeded from known stack pattern — 3-layer security model"
+---

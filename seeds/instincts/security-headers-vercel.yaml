@@ -1,0 +1,21 @@
+# ─────────────────────────────────────────────────────────────────
+# Source: https://github.com/fermonterom/fs-cortex
+# License: MIT © 2026 Fernando Montero
+# Imported to Sinapsis on: 2026-04-18
+# ─────────────────────────────────────────────────────────────────
+
+---
+id: security-headers-vercel
+trigger: "vercel\\.json|next\\.config|headers|csp|x-frame"
+action: "Set security headers in vercel.json or next.config: X-Frame-Options DENY, X-Content-Type-Options nosniff, Referrer-Policy strict-origin-when-cross-origin, Content-Security-Policy."
+confidence: 0.75
+domain: security
+tags: [vercel, headers, security, deployment]
+scope: global
+source: manual-seed
+first_seen: "2026-04-04"
+last_seen: "2026-04-04"
+occurrences: 1
+evidence:
+  - "2026-04-04: Seeded from deployment security checklist"
+---

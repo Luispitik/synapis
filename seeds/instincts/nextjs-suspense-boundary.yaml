@@ -1,0 +1,21 @@
+# ─────────────────────────────────────────────────────────────────
+# Source: https://github.com/fermonterom/fs-cortex
+# License: MIT © 2026 Fernando Montero
+# Imported to Sinapsis on: 2026-04-18
+# ─────────────────────────────────────────────────────────────────
+
+---
+id: nextjs-suspense-boundary
+trigger: "useSearchParams|usePathname|searchParams|dynamic.import"
+action: "Wrap component using useSearchParams/usePathname in <Suspense fallback={...}>. Next.js 14+ requires this for App Router client components that read URL state."
+confidence: 0.80
+domain: web-development
+tags: [nextjs, react, suspense, app-router]
+scope: global
+source: manual-seed
+first_seen: "2026-04-04"
+last_seen: "2026-04-04"
+occurrences: 1
+evidence:
+  - "2026-04-04: Seeded from known Next.js 14+ requirement"
+---

@@ -166,6 +166,7 @@ cp "$SCRIPT_DIR/core/_eod-gather.sh" "$SKILLS_DIR/_eod-gather.sh"
 cp "$SCRIPT_DIR/core/_dream.sh" "$SKILLS_DIR/_dream.sh"
 cp "$SCRIPT_DIR/core/_generate-dashboard.py" "$SKILLS_DIR/_generate-dashboard.py"
 cp "$SCRIPT_DIR/core/_dashboard-template.html" "$SKILLS_DIR/_dashboard-template.html"
+cp "$SCRIPT_DIR/core/_seed-import.py" "$SKILLS_DIR/_seed-import.py"
 
 chmod +x "$SKILLS_DIR/_passive-activator.sh"
 chmod +x "$SKILLS_DIR/_instinct-activator.sh"
@@ -174,8 +175,20 @@ chmod +x "$SKILLS_DIR/_project-context.sh"
 chmod +x "$SKILLS_DIR/_eod-gather.sh"
 chmod +x "$SKILLS_DIR/_dream.sh"
 chmod +x "$SKILLS_DIR/_generate-dashboard.py" 2>/dev/null || true
+chmod +x "$SKILLS_DIR/_seed-import.py" 2>/dev/null || true
 
-echo -e "${GREEN}  OK${NC} 5 hook scripts + dream cycle + dashboard generator installed"
+# ── Step 5c: Ship-with-install seed instincts ──
+# Copy seed YAMLs to ~/.claude/skills/_seeds/instincts/ and run the importer.
+# Idempotent — safe on upgrade (existing IDs skipped).
+if [ -d "$SCRIPT_DIR/seeds/instincts" ]; then
+  mkdir -p "$SKILLS_DIR/_seeds/instincts"
+  cp "$SCRIPT_DIR/seeds/instincts"/*.yaml "$SKILLS_DIR/_seeds/instincts/" 2>/dev/null || true
+  python "$SKILLS_DIR/_seed-import.py" \
+    --seeds-dir "$SKILLS_DIR/_seeds/instincts" \
+    --index-path "$SKILLS_DIR/_instincts-index.json" 2>&1 | sed 's/^/    /' || true
+fi
+
+echo -e "${GREEN}  OK${NC} 5 hook scripts + dream cycle + dashboard generator + seed importer installed"
 
 # ── Step 5b: Legacy file cleanup (v4.3.3) ──
 LEGACY_CLEANED=0
